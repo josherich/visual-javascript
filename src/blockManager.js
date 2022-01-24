@@ -2,6 +2,7 @@ import _flattenDeep from "lodash/flattenDeep";
 import { Block } from "./block";
 import { ExDrawArrow } from "./exDrawArrow";
 
+/* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {
   constructor(statements) {
     this.blocks = [];
@@ -42,7 +43,6 @@ export class BlockManager {
           const [, fromBlockIndex, fromIndex] = this.refs[name];
           const from = this.blocks[fromBlockIndex];
           const to = this.blocks[toBlockIndex];
-          console.log(fromBlockIndex, toBlockIndex, fromIndex, toIndex);
           this.link(from, to, fromIndex, toIndex);
         }
       });
@@ -60,9 +60,8 @@ export class BlockManager {
     this.links.push(link);
   }
   getExDrawElements() {
-    console.log(this.links.map((link) => link.get()));
     return _flattenDeep([
-      this.blocks.map((block) => block.exBlock.get()),
+      this.blocks.map((block) => block.get()),
       this.links.map((link) => link.get())
     ]);
   }

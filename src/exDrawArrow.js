@@ -33,8 +33,8 @@ export class ExDrawArrow extends ExDrawElement {
   setPosition(x, y, ex, ey) {
     this.x = x;
     this.y = y;
-    this.points.push([0, 0]);
-    this.points.push([ex - x, ey - y]);
+    this.points[0] = [0, 0];
+    this.points[1] = [ex - x, ey - y];
   }
   get() {
     return Object.assign({}, this, ExDrawElement.prototype.base.call(this));

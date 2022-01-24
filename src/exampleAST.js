@@ -156,6 +156,107 @@ export const exampleAST = {
           }
         }
       }
+    },
+    {
+      "type": "IfStatement",
+      "start": 424,
+      "end": 469,
+      "test": {
+        "type": "BinaryExpression",
+        "code": "c + b > 0",
+        "start": 428,
+        "end": 437,
+        "left": {
+          "type": "BinaryExpression",
+          "start": 428,
+          "end": 433,
+          "left": {
+            "type": "Identifier",
+            "start": 428,
+            "end": 429,
+            "name": "c"
+          },
+          "operator": "+",
+          "right": {
+            "type": "Identifier",
+            "start": 432,
+            "end": 433,
+            "name": "b"
+          }
+        },
+        "operator": ">",
+        "right": {
+          "type": "Literal",
+          "start": 436,
+          "end": 437,
+          "value": 0,
+          "raw": "0"
+        }
+      },
+      "consequent": {
+        "type": "BlockStatement",
+        "start": 439,
+        "end": 451,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "code": "a = 0",
+            "start": 443,
+            "end": 449,
+            "expression": {
+              "type": "AssignmentExpression",
+              "start": 443,
+              "end": 448,
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "start": 443,
+                "end": 444,
+                "name": "a"
+              },
+              "right": {
+                "type": "Literal",
+                "start": 447,
+                "end": 448,
+                "value": 0,
+                "raw": "0"
+              }
+            }
+          }
+        ]
+      },
+      "alternate": {
+        "type": "BlockStatement",
+        "code": "a = 1",
+        "start": 457,
+        "end": 469,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 461,
+            "end": 467,
+            "expression": {
+              "type": "AssignmentExpression",
+              "start": 461,
+              "end": 466,
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "start": 461,
+                "end": 462,
+                "name": "a"
+              },
+              "right": {
+                "type": "Literal",
+                "start": 465,
+                "end": 466,
+                "value": 1,
+                "raw": "1"
+              }
+            }
+          }
+        ]
+      }
     }
   ],
   sourceType: "module"
