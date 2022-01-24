@@ -8,8 +8,14 @@ export class BlockManager {
     this.blocks = [];
     this.links = [];
     this.refs = {};
+    this.mutations = [];
     statements.forEach((statementNode) => {
-      this.blocks.push(new Block(statementNode));
+      const keysInScope = Object.keys(this.refs)
+      const block = new Block(statementNode, keysInScope);
+      block.outputs.forEach((name, outputIndex) => {
+        this.refs[name] = [block.id(), this.blocks.length, outputIndex];
+      });
+      this.blocks.push(block);
     });
     // build relations
     this.blocks.forEach((block, index) => {
@@ -17,9 +23,10 @@ export class BlockManager {
         block.next = this.blocks[index + 1];
       }
     });
-    this.buildReference();
+    // this.buildReference();
     this.setPositions();
-    this.linkReference();
+    this.linkReferences();
+    this.linkMutations();
   }
   setPositions() {
     let first = this.blocks[0];
@@ -29,14 +36,40 @@ export class BlockManager {
       first = first.next;
     }
   }
-  buildReference() {
-    this.blocks.forEach((block, blockIndex) => {
-      block.outputs.forEach((name, outputIndex) => {
-        this.refs[name] = [block.id(), blockIndex, outputIndex];
-      });
-    });
+  // buildReference() {
+  //   this.blocks.forEach((block, blockIndex) => {
+  //     block.outputs.forEach((name, outputIndex) => {
+  //       this.refs[name] = [block.id(), blockIndex, outputIndex];
+  //     });
+  //   });
+  // }
+  linkMutations() {
+    // block mutation
+    // block's control flow mutation
+    this.mutations = this.blocks
+      .filter(block => block.mutation)
+      .map(block => {
+        let [name, value] = block.mutation;
+        let targetBlockRef = this.refs[name];
+        if (targetBlockRef) {
+          const targetBlock = this.blocks[targetBlockRef[1]];
+          const link = new ExDrawArrow({
+            startElement: block.id(),
+            endElement: targetBlock.id(),
+            startPosition: block.getMutationPosition(),
+            endPosition: targetBlock.getMutationPosition(),
+            style: "dotted",
+          });
+          block.link(link);
+          targetBlock.link(link);
+          return link;
+        } else {
+          console.warn(`${name} is not defined.`);
+          return null;
+        }
+    }).filter(e => e);
   }
-  linkReference() {
+  linkReferences() {
     this.blocks.forEach((block, toBlockIndex) => {
       block.inputs.forEach((name, toIndex) => {
         if (this.refs[name]) {
@@ -62,7 +95,8 @@ export class BlockManager {
   getExDrawElements() {
     return _flattenDeep([
       this.blocks.map((block) => block.get()),
-      this.links.map((link) => link.get())
+      this.links.map((link) => link.get()),
+      this.mutations.map((mutation) => mutation.get())
     ]);
   }
 

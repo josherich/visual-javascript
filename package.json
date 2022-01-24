@@ -1,5 +1,5 @@
 {
-  "name": "visual-javaScript",
+  "name": "visual-javascript",
   "version": "0.0.1",
   "description": "Visual JavaScript inspired by Unity Bolt",
   "main": "index.html",
@@ -8,6 +8,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
+    "acorn": "^8.7.0",
     "lodash": "^4.17.21",
     "parcel-bundler": "^1.6.1"
   },

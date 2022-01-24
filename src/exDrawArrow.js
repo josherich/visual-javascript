@@ -5,10 +5,12 @@ export class ExDrawArrow extends ExDrawElement {
     startPosition: [x, y],
     endPosition: [ex, ey],
     startElement,
-    endElement
+    endElement,
+    style="solid",
   } = {}) {
     super({
-      type: "arrow"
+      type: "arrow",
+      style,
     });
     this.width = 148;
     this.height = 8;

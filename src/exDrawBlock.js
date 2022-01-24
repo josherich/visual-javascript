@@ -5,7 +5,7 @@ import { ExDrawLabels } from "./exDrawLabels";
 
 /* ExDrawBlock can include frame, title, inputs, outputs and control flow blocks */
 export class ExDrawBlock {
-  constructor({ title = "statement", inputs = [], outputs = [], controlFlows = [] } = {}) {
+  constructor({ title = "statement", content="", inputs = [], outputs = [], controlFlows = [] } = {}) {
     this.title = title;
     this.groupId = _uniqueId("groupId");
     this.x = 0;
@@ -32,8 +32,14 @@ export class ExDrawBlock {
       group: this.groupId,
       position: [this.x, this.y]
     });
+    if (content) {
+      this.content = new ExDrawText({
+        title: content,
+        group: this.groupId,
+        position: [this.x + 10, this.y + 40]
+      });
+    }
     if (controlFlows.length > 0) {
-      console.log('controlFlows', controlFlows);
       this.controlFlows = new ExDrawLabels({
         names: controlFlows,
         direction: "right",
@@ -46,6 +52,7 @@ export class ExDrawBlock {
     return [
       this.frame.get(),
       this.title.get(),
+      this.content ? this.content.get() : [],
       ...this.inputs.get(),
       ...this.outputs.get(),
       ...this.controlFlows ? this.controlFlows.get() : [],
@@ -75,11 +82,15 @@ export class ExDrawBlock {
       this.controlFlows.getLinkPosition(index)[1]
     ];
   }
+  getMutationPosition() {
+    return this.frame.getPosition();
+  }
   setPosition(x, y) {
     this.frame.setPosition(x, y);
     this.title.setPosition(x, y);
     this.inputs.setPosition(x, y);
     this.outputs.setPosition(x, y);
+    if (this.content) this.content.setPosition(x + 10, y + 40);
     if (this.controlFlows) this.controlFlows.setPosition(x, y);
   }
   link(arrow) {

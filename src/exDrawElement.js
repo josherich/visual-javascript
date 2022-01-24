@@ -2,12 +2,12 @@
 import _uniqueId from "lodash/uniqueId";
 
 export class ExDrawElement {
-  constructor({ type = "rectangle", group } = {}) {
+  constructor({ type = "rectangle", style="solid", group } = {}) {
     this.type = type;
     this.x = 0;
     this.y = 0;
     this.strokeWidth = 1;
-    this.strokeStyle = "solid";
+    this.strokeStyle = style;
     this.fillStyle = "hachure";
     this.strokeColor = "#000000";
     this.strokeSharpness = "sharp";

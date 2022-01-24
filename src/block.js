@@ -1,6 +1,8 @@
 import { ExDrawBlock } from "./exDrawBlock";
 import { ExDrawArrow } from "./exDrawArrow";
+import { getCode } from "./exampleAST";
 // var a = 42;
+// a = 1;
 // var b = 5;
 // function addA(d) {
 //   return a + d;
@@ -13,6 +15,7 @@ import { ExDrawArrow } from "./exDrawArrow";
 // }
 const identifierMap = {
   BinaryExpression: ["left", "right"],
+  AssignmentExpression: ["left", "right"],
   CallExpression: ["callee", "arguments"],
   BlockStatement: ["body"],
   ReturnStatement: ["argument"]
@@ -27,18 +30,23 @@ const identifierNameMap = {
 
 /* Block is the AST representation that manages UI elements */
 export class Block {
-  constructor(node) {
+  constructor(node, keysInScope) {
     // ast node
     this.name = node.type;
+    this.keysInScope = keysInScope;
     this.inputs = this.parseInputs(node); // var deps
     this.outputs = this.parseOutputs(node); // if var declaration
+    this.mutation = this.parseMutation(node);
     this.controlFlows = this.parseControlFlows(node); // control flow statement
     this.blockType = this.parseBlockType(node);
     this.sourceCode = this.parseSourceCode(node);
     this.prev = null;
     this.next = null;
     this.position = null;
+
     this.exBlock = null;
+    this.exControlFlowBlocks = null;
+
     this.links = [];
 
     this.drawBlock();
@@ -46,8 +54,11 @@ export class Block {
   parseBlockType(node) {
     switch(node.type) {
       case "ExpressionStatement":
-        if (node.expression.type === "AssignmentExpression") {
+        if (node.expression.type === "AssignmentExpression" && node.expression.right.type === "BinaryExpression") {
           return node.expression.right.operator;
+        }
+        if (node.expression.type === "AssignmentExpression") {
+          return getCode(node.expression);
         }
         return "";
       default:
@@ -57,9 +68,16 @@ export class Block {
   parseSourceCode(node) {
     switch(node.type) {
       case "IfStatement":
-        return [node.test.code, node.consequent.code, node.alternate.code];
+        return [node.test, node.consequent, node.alternate].map(getCode);
       default:
         return '';
+    }
+  }
+  parseMutation(node) {
+    if (node.type === "ExpressionStatement" && node.expression.type === "AssignmentExpression") {
+      return [node.expression.left.name, node.expression.right.value];
+    } else {
+      return null;
     }
   }
   parseInputs(node) {
@@ -86,7 +104,13 @@ export class Block {
       case "FunctionDeclaration":
         return [node.id.name];
       case "ExpressionStatement":
-        return this.parseIdentifiers(node.expression.left);
+        return this.parseOutputs(node.expression);
+      case "AssignmentExpression":
+        if (node.left.type === "Identifier" && !this.keysInScope.includes(node.left.name)) {
+          return this.parseIdentifiers(node.left); // only when id exists in refs
+        } else {
+          return [];
+        }
       default:
         return [];
     }
@@ -138,6 +162,7 @@ export class Block {
     this.exControlFlowBlocks = Object.entries(this.controlFlows).map(([name, statements]) => {
       return new ExDrawBlock({
         title: "statments",
+        content: statements.map(getCode).join("\n"),
         inputs: [],
         outputs: [],
       });
@@ -167,6 +192,9 @@ export class Block {
   }
   getOutputPosition(index) {
     return this.exBlock.getOutputPosition(index);
+  }
+  getMutationPosition() {
+    return this.exBlock.getMutationPosition();
   }
   getControlFlowInPosition() {
     return this.exBlock.getControlFlowInPosition();
