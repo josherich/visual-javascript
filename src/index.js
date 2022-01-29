@@ -1,6 +1,5 @@
 /*eslint-disable */
 import "./styles.css";
-import InitialData from "./initialData";
 import { exBlocks } from "./render";
 
 const App = () => {
@@ -120,8 +119,8 @@ const App = () => {
         initialData: exampleScene(),
         // onChange: (elements, state) =>
         // console.log("Elements :", elements, "State : ", state),
-        onPointerUpdate: (payload) => console.log(payload),
-        onCollabButtonClick: () => window.alert("You clicked on collab button"),
+        // onPointerUpdate: (payload) => console.log(payload),
+        // onCollabButtonClick: () => window.alert("You clicked on collab button"),
         viewModeEnabled: viewModeEnabled,
         zenModeEnabled: zenModeEnabled,
         gridModeEnabled: gridModeEnabled

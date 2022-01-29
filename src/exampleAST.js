@@ -10,6 +10,7 @@ function addA(d) {
 c = addA(2) + b;
 if (c + b > 0) {
   a = 0;
+  b = 3;
 } else {
   a = 1;
 }

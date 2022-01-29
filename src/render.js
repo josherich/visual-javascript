@@ -11,7 +11,6 @@ const registerAction = (name, action) => {
 
 const render = (statements) => {
   const manager = new BlockManager(statements);
-  manager.testExampleAST();
   return manager.getExDrawElements();
 };
 

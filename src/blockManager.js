@@ -1,6 +1,8 @@
 import _flattenDeep from "lodash/flattenDeep";
 import { Block } from "./block";
+import { BlockGroup } from "./blockGroup";
 import { ExDrawArrow } from "./exDrawArrow";
+import { Springy } from "./layout";
 
 /* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {
@@ -9,9 +11,19 @@ export class BlockManager {
     this.links = [];
     this.refs = {};
     this.mutations = [];
+
+    // ======== layout =========
+    this.graph = new Springy.Graph();
+
     statements.forEach((statementNode) => {
-      const keysInScope = Object.keys(this.refs)
-      const block = new Block(statementNode, keysInScope);
+      const keysInScope = Object.keys(this.refs);
+      const block = Array.isArray(statementNode)
+        ? new BlockGroup(statementNode, keysInScope)
+        : new Block(statementNode, keysInScope);
+
+      const layoutNode = this.graph.newNode({label: statementNode.type});
+      block.setLayoutNode(layoutNode);
+
       block.outputs.forEach((name, outputIndex) => {
         this.refs[name] = [block.id(), this.blocks.length, outputIndex];
       });
@@ -27,6 +39,8 @@ export class BlockManager {
     this.setPositions();
     this.linkReferences();
     this.linkMutations();
+
+    // this.getLayout();
   }
   setPositions() {
     let first = this.blocks[0];
@@ -62,6 +76,7 @@ export class BlockManager {
           });
           block.link(link);
           targetBlock.link(link);
+          this.graph.newEdge(block.layoutNode, targetBlock.layoutNode);
           return link;
         } else {
           console.warn(`${name} is not defined.`);
@@ -77,6 +92,7 @@ export class BlockManager {
           const from = this.blocks[fromBlockIndex];
           const to = this.blocks[toBlockIndex];
           this.link(from, to, fromIndex, toIndex);
+          this.graph.newEdge(from.layoutNode, to.layoutNode);
         }
       });
     });
@@ -99,43 +115,36 @@ export class BlockManager {
       this.mutations.map((mutation) => mutation.get())
     ]);
   }
-
-  // test
-  testExampleAST() {
-    console.assert(
-      this.blocks[0].inputs.toString() === "",
-      this.blocks[0].inputs
+  getLayout() {
+    const layout = new Springy.Layout.ForceDirected(
+      this.graph,
+      400.0, // Spring stiffness
+      400.0, // Node repulsion
+      0.5 // Damping
     );
-    console.assert(
-      this.blocks[0].outputs.toString() === "a",
-      this.blocks[0].outputs
+    const that = this;
+    this.renderer = new Springy.Renderer(
+      layout,
+      function clear() {
+        // code to clear screen
+        console.log('clear');
+      },
+      function drawEdge(edge, p1, p2) {
+        // draw an edge
+        console.log(edge, p1, p2);
+      },
+      function drawNode(node, p) {
+        // draw a node
+        console.log(node, p)
+      },
+      function onRenderStop() {
+        // code to run when the layout has stopped
+        console.log('stop');
+        const nodes = Object.values(this.nodePoints).map(node => [node.p.x*10, node.p.y*10]);
+        console.log(nodes);
+      }
     );
-
-    console.assert(
-      this.blocks[1].inputs.toString() === "",
-      this.blocks[1].inputs
-    );
-    console.assert(
-      this.blocks[1].outputs.toString() === "b",
-      this.blocks[1].outputs
-    );
-
-    console.assert(
-      this.blocks[2].inputs.toString() === "a",
-      "func inputs" + this.blocks[2].inputs
-    );
-    console.assert(
-      this.blocks[2].outputs.toString() === "addA",
-      "func outputs" + this.blocks[2].outputs
-    );
-
-    console.assert(
-      this.blocks[3].inputs.toString() === "addA,b",
-      "exprstat inputs" + this.blocks[3].inputs
-    );
-    console.assert(
-      this.blocks[3].outputs.toString() === "c",
-      "exprstat outputs" + this.blocks[3].outputs
-    );
+    this.renderer.start();
   }
+
 }

@@ -43,7 +43,6 @@ export class ExDrawElement {
     };
   }
   get() {
-    console.log(this.base().groupIds);
     return Object.assign({}, this, this.base());
   }
 }
