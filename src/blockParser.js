@@ -125,6 +125,14 @@ export const parseControlFlows = (node) => {
       return {
         Body: parseBlockStatement(node.body),
       };
+    case "BreakStatement":
+      return {
+        Exit: [],
+      }
+    case "ContinueStatement":
+      return {
+        Exit: [],
+      }
     default:
       return {};
   }

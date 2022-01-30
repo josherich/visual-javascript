@@ -10,15 +10,14 @@ function addA(d) {
 c = addA(2) + b;
 while (c > 0) {
   c = c - 1;
-}
-if (c + b > 0) {
-  a = 0;
-  if (a) {
-    b = 3;
+  if (c > 0) {
+    a = a - 1;
+    break;
+  } else {
+    continue;
   }
-} else {
-  a = 1;
 }
+var x = a + b;
 `;
 export const exampleAST = acorn.parse(exampleSource, { ecmaVersion: 2020 });
 export const source = exampleSource;

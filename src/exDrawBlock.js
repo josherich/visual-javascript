@@ -13,6 +13,7 @@ export class ExDrawBlock {
     controlFlows = [],
     groupId = _uniqueId("groupId"),
     isGroup = false,
+    isControlFlow = false,
   } = {}) {
     this.title = title;
     this.groupId = groupId;
@@ -55,6 +56,9 @@ export class ExDrawBlock {
         group: this.groupId,
         position: [this.x, this.y],
       });
+    }
+    if (isControlFlow) {
+      this.frame.setSize(140, 60);
     }
   }
   get() {

@@ -154,10 +154,25 @@ export class BlockManager {
       a.link(link);
       b.link(link);
       this.sequence.push(link);
-    }
+    };
+    const linkBreakReturn = (a, b) => {
+      const link = new ExDrawArrow({
+        type: "sequence",
+        startElement: a.id(),
+        endElement: b.id(),
+        startPosition: a.getControlFlowOutPosition(),
+        endPosition: b.getControlFlowInPosition(),
+      });
+      a.link(link);
+      b.link(link);
+      this.sequence.push(link);
+    };
     this.blocks.forEach((block, index) => {
       if (index < this.blocks.length - 1) {
         linkSequence(block, this.blocks[index + 1]);
+        block.getBreakReturnBlocks().forEach((breakReturnBlock) => {
+          linkBreakReturn(breakReturnBlock, this.blocks[index + 1]);
+        });
       }
     });
   }

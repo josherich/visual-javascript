@@ -48,6 +48,7 @@ export class Block {
       outputs: this.outputs,
       controlFlows: Object.keys(this.controlFlows),
       groupId: this.groupId,
+      isControlFlow: this.isControlFlowBlock(),
     });
     // this.controlFlowBlocks = Object.entries(this.controlFlows).map(
     //   ([name, statements]) => {
@@ -61,12 +62,16 @@ export class Block {
     // );
     this.controlFlowBlocks = Object.entries(this.controlFlows).map(
       ([name, statements]) => {
-        return new BlockGroup({
-          nodes: statements,
-          keysInScope: this.keysInScope,
-          getCode: this.getCode,
-        });
-    });
+        if (name === "Exit") {
+          return null
+        } else {
+          return new BlockGroup({
+            nodes: statements,
+            keysInScope: this.keysInScope,
+            getCode: this.getCode,
+          });
+        }
+    }).filter(e => e);
     this.linkControlFlow();
   }
 
@@ -81,7 +86,6 @@ export class Block {
       ...this.links.map((link) => link.get()),
     ];
   }
-
   title() {
     let title = this.name;
     const codeInTitle = getCodeInTitle(this.name, this.sourceCode);
@@ -91,6 +95,8 @@ export class Block {
       IfStatement: "if",
       WhileStatement: "while",
       DoWhileStatement: "do-while",
+      BreakStatement: "break",
+      ContinueStatement: "continue",
     };
     const expressionStatementMap = {
       AssignmentExpression: "Assignment",
@@ -116,6 +122,22 @@ export class Block {
   getMutations() {
     return [this.mutation];
   }
+  getBreakReturnBlocks() {
+    const jumpBlocks = [];
+    const recursivelyFindBreakReturnBlocks = (block) => {
+      if (block instanceof BlockGroup) {
+        block.blocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+      } else if (block instanceof Block) {
+        if (['WhileStatement', 'DoWhileStatement', 'ForStatement'].includes(block.name)) return;
+        if (['BreakStatement'].includes(block.name)) {
+          return jumpBlocks.push(block);
+        }
+        block.controlFlowBlocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+      }
+    }
+    this.controlFlowBlocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+    return jumpBlocks;
+  }
   getInputPosition(index) {
     return this.exBlock.getInputPosition(index);
   }
@@ -133,6 +155,10 @@ export class Block {
   }
   getPosition() {
     return this.exBlock.getPosition();
+  }
+  // Boolean getter
+  isControlFlowBlock() {
+    return ['BreakStatement', 'ContinueStatement'].includes(this.name);
   }
 
   // setter
