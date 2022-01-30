@@ -99,16 +99,19 @@ export const parseMutation = (node) => {
 export const parseControlFlows = (node) => {
   switch (node.type) {
     case "IfStatement":
-      return {
+      let res = {
         True: parseBlockStatement(node.consequent),
-        False: parseBlockStatement(node.alternate),
       };
+      if (node.alternate) {
+        res.False = parseBlockStatement(node.alternate);
+      }
+      return res;
     default:
       return {};
   }
 };
 
-export const parseBlockType = (node) => {
+export const parseBlockType = (node, getCode) => {
   switch (node.type) {
     case "ExpressionStatement":
       if (
@@ -126,10 +129,10 @@ export const parseBlockType = (node) => {
   }
 };
 
-export const parseSourceCode = (node) => {
+export const parseSourceCode = (node, getCode) => {
   switch (node.type) {
     case "IfStatement":
-      return [node.test, node.consequent, node.alternate].map(getCode);
+      return [node.test, node.consequent, node.alternate].filter(e => e).map(getCode);
     default:
       return "";
   }

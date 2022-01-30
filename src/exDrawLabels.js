@@ -27,8 +27,9 @@ export class ExDrawLabels {
         circle.setPosition(labelX, labelY + circleOffsetY);
         text.setPosition(labelX + 15, labelY + textOffsetY);
       } else {
+        const textWidth = text.getTextWidth();
         circle.setPosition(labelX + 110, labelY + circleOffsetY);
-        text.setPosition(labelX + 80, labelY + textOffsetY);
+        text.setPosition(labelX + 110 - textWidth, labelY + textOffsetY);
       }
     });
   }

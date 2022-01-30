@@ -10,14 +10,12 @@ function addA(d) {
 c = addA(2) + b;
 if (c + b > 0) {
   a = 0;
-  b = 3;
+  if (a) {
+    b = 3;
+  }
 } else {
   a = 1;
 }
 `;
 export const exampleAST = acorn.parse(exampleSource, { ecmaVersion: 2020 });
-export const getCode = (node) => {
-  if (node.start === undefined && node.end === undefined) return "";
-
-  return exampleSource.slice(node.start, node.end);
-}
+export const source = exampleSource;

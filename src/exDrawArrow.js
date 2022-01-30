@@ -2,6 +2,7 @@ import { ExDrawElement } from "./exDrawElement";
 
 export class ExDrawArrow extends ExDrawElement {
   constructor({
+    type = 'sequence',
     startPosition: [x, y],
     endPosition: [ex, ey],
     startElement,
@@ -12,6 +13,7 @@ export class ExDrawArrow extends ExDrawElement {
       type: "arrow",
       style,
     });
+    this.arrowType = type;
     this.width = 148;
     this.height = 8;
 
@@ -29,6 +31,9 @@ export class ExDrawArrow extends ExDrawElement {
     this.startArrowhead = null;
     this.endArrowhead = "arrow";
     this.lastCommittedPoint = null;
+    if (this.arrowType !== 'sequence') {
+      this.opacity = 40;
+    }
 
     this.setPosition(x, y, ex, ey);
   }

@@ -1,4 +1,4 @@
-import { exampleAST } from "./exampleAST";
+import { exampleAST, source } from "./exampleAST";
 import { BlockManager } from "./blockManager";
 
 // ===================================================================
@@ -9,14 +9,14 @@ const registerAction = (name, action) => {
 
 // ===================================================================
 
-const render = (statements) => {
-  const manager = new BlockManager(statements);
+const render = (statements, source) => {
+  const manager = new BlockManager(statements, source);
   return manager.getExDrawElements();
 };
 
 const start = () => {
   const statements = exampleAST["body"];
-  return render(statements);
+  return render(statements, source);
 };
 // ====================================================================
 export const exBlocks = start();

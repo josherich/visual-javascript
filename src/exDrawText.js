@@ -28,4 +28,7 @@ export class ExDrawText extends ExDrawElement {
   get() {
     return Object.assign({}, this, ExDrawElement.prototype.base.call(this));
   }
+  getTextWidth() {
+    return this.text.length * 6.5 + 5;
+  }
 }

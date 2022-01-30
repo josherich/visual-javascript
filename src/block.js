@@ -1,6 +1,6 @@
 import { ExDrawBlock } from "./exDrawBlock";
 import { ExDrawArrow } from "./exDrawArrow";
-import { getCode } from "./exampleAST";
+import { BlockGroup } from "./blockGroup";
 
 import {
   parseInputs,
@@ -14,17 +14,20 @@ import {
 
 /* Block is the AST representation that manages UI elements */
 export class Block {
-  constructor(node, keysInScope) {
+  constructor({node, keysInScope, getCode, groupId}={}) {
     // ast node
     this.name = node.type;
     this.keysInScope = keysInScope;
+    this.getCode = getCode;
+    this.groupId = groupId;
+    this.node = node;
 
     this.inputs = parseInputs(node); // var deps
     this.outputs = parseOutputs(node, keysInScope); // if var declaration
     this.mutation = parseMutation(node);
     this.controlFlows = parseControlFlows(node); // control flow statement
-    this.blockType = parseBlockType(node);
-    this.sourceCode = parseSourceCode(node);
+    this.blockType = parseBlockType(node, getCode);
+    this.sourceCode = parseSourceCode(node, getCode);
 
     this.prev = null;
     this.next = null;
@@ -44,23 +47,26 @@ export class Block {
       inputs: this.inputs,
       outputs: this.outputs,
       controlFlows: Object.keys(this.controlFlows),
+      groupId: this.groupId,
     });
+    // this.exControlFlowBlocks = Object.entries(this.controlFlows).map(
+    //   ([name, statements]) => {
+    //     return new ExDrawBlock({
+    //       title: "statments",
+    //       content: statements.map(this.getCode).join("\n"),
+    //       inputs: [],
+    //       outputs: [],
+    //     });
+    //   }
+    // );
     this.exControlFlowBlocks = Object.entries(this.controlFlows).map(
       ([name, statements]) => {
-        return new ExDrawBlock({
-          title: "statments",
-          content: statements.map(getCode).join("\n"),
-          inputs: [],
-          outputs: [],
+        return new BlockGroup({
+          nodes: statements,
+          keysInScope: this.keysInScope,
+          getCode: this.getCode,
         });
-      }
-    );
-    // this.exControlFlowBlocks = Object.entries(this.controlFlows).map(([name, statements]) => {
-    //   return new BlockGroup({
-    //     nodes: statements,
-    //     keysInScope: this.keysInScope,
-    //   });
-    // });
+    });
     this.linkControlFlow();
   }
 
@@ -77,16 +83,26 @@ export class Block {
   }
 
   title() {
+    let title = this.name;
     const codeInTitle = getCodeInTitle(this.name, this.sourceCode);
     const identifierNameMap = {
-      ExpressionStatement: "statement",
-      FunctionDeclaration: "function",
-      VariableDeclaration: "variable",
+      FunctionDeclaration: "Function",
+      VariableDeclaration: "Variable",
       IfStatement: "if",
     };
+    const expressionStatementMap = {
+      AssignmentExpression: "Assignment",
+    }
+    title = identifierNameMap[this.name];
+    if (this.name === 'ExpressionStatement') {
+      title = expressionStatementMap[this.node.expression.type];
+    }
+    if (this.blockType) {
+      title += ` ${this.blockType}`;
+    }
     return (
-      `${identifierNameMap[this.name] || this.name} ${this.blockType}` +
-      (codeInTitle ? `(${codeInTitle})` : "")
+      title +
+      (codeInTitle ? ` (${codeInTitle})` : "")
     );
   }
   getInputPosition(index) {
@@ -115,7 +131,7 @@ export class Block {
   setPosition(x, y) {
     this.exBlock.setPosition(x, y);
     this.exControlFlowBlocks.forEach((block, index) => {
-      block.setPosition(x + 170, y + (index + 1) * 110);
+      block.setPosition(x + 170, y - 400 + (index + 1) * 300);
     });
     this.links.forEach((link, index) => {
       const block = this.exControlFlowBlocks[index];

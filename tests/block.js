@@ -4,7 +4,7 @@ const acorn = require("acorn");
 export const runBlockTest = (testName, source, expectBlocks) => {
   const exampleAST = acorn.parse(source, { ecmaVersion: 2020 });
   const statements = exampleAST['body'];
-  const manager = new BlockManager(statements);
+  const manager = new BlockManager(statements, source);
   const actualBlocks = manager.blocks;
 
   console.assert(
@@ -31,7 +31,7 @@ export const runBlockTest = (testName, source, expectBlocks) => {
 export const runBlockGroupTest = (testName, source, expectBlocks, expectedUnfoldBlocks) => {
   const exampleAST = acorn.parse(source, { ecmaVersion: 2020 });
   const statements = exampleAST['body'];
-  const manager = new BlockManager([statements]);
+  const manager = new BlockManager([statements], source);
   const actualBlocks = manager.blocks;
 
   console.assert(
@@ -39,6 +39,7 @@ export const runBlockGroupTest = (testName, source, expectBlocks, expectedUnfold
     `Expected ${expectBlocks.length} blocks, but got ${actualBlocks.length}`
   );
   actualBlocks.forEach((actual, index) => {
+
     actual.fold();
     console.assert(
       actual.getInputs().sort().toString() === expectBlocks[index].inputs.sort().toString(),

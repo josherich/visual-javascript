@@ -1,8 +1,15 @@
 // import { times } from "lodash";
 import _uniqueId from "lodash/uniqueId";
 
+const BLOCK_WIDTH = 140;
+const BLOCK_HEIGHT = 100;
 export class ExDrawElement {
-  constructor({ type = "rectangle", style="solid", group } = {}) {
+  constructor({
+    type = "rectangle",
+    style = "solid",
+    group,
+    backgroundColor = "transparent",
+  } = {}) {
     this.type = type;
     this.x = 0;
     this.y = 0;
@@ -11,11 +18,11 @@ export class ExDrawElement {
     this.fillStyle = "hachure";
     this.strokeColor = "#000000";
     this.strokeSharpness = "sharp";
-    this.backgroundColor = "transparent";
+    this.backgroundColor = backgroundColor;
     this.roughness = 0;
     this.opacity = 100;
-    this.width = 140;
-    this.height = 100;
+    this.width = BLOCK_WIDTH;
+    this.height = BLOCK_HEIGHT;
     this.angle = 0;
     this.boundElements = null;
 
@@ -28,6 +35,10 @@ export class ExDrawElement {
     this.x = x;
     this.y = y;
   }
+  setSize(width, height) {
+    this.width = width;
+    this.height = height;
+  }
   getPosition() {
     return [this.x, this.y];
   }
@@ -39,7 +50,7 @@ export class ExDrawElement {
       ...(this.groupId ? { groupIds: [this.groupId] } : { groupIds: [] }),
       version: 1,
       verisonNonce: 1,
-      isDeleted: false
+      isDeleted: false,
     };
   }
   get() {
