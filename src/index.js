@@ -1,6 +1,6 @@
 /*eslint-disable */
 import "./styles.css";
-import { exBlocks } from "./render";
+import { manager, reload } from "./render";
 
 const App = () => {
   const excalidrawRef = React.useRef(null);
@@ -11,8 +11,9 @@ const App = () => {
   });
 
   const [viewModeEnabled, setViewModeEnabled] = React.useState(false);
-  const [zenModeEnabled, setZenModeEnabled] = React.useState(false);
+  const [zenModeEnabled, setZenModeEnabled] = React.useState(true);
   const [gridModeEnabled, setGridModeEnabled] = React.useState(false);
+  const sourceText = React.createRef();
 
   React.useEffect(() => {
     setDimensions({
@@ -38,7 +39,32 @@ const App = () => {
         viewBackgroundColor: "#edf2ff"
       }
     };
-    sceneData.elements = exBlocks;
+    reload(sourceText.current.value);
+    sceneData.elements = manager.getExDrawElements();
+    excalidrawRef.current.updateScene(sceneData);
+  };
+
+  const toggleReferences = () => {
+    const sceneData = {
+      elements: [],
+      appState: {
+        viewBackgroundColor: "#edf2ff"
+      }
+    };
+    manager.toggleReferences();
+    sceneData.elements = manager.getExDrawElements();
+    excalidrawRef.current.updateScene(sceneData);
+  };
+
+  const toggleAssignments = () => {
+    const sceneData = {
+      elements: [],
+      appState: {
+        viewBackgroundColor: "#edf2ff"
+      }
+    };
+    manager.toggleMutations();
+    sceneData.elements = manager.getExDrawElements();
     excalidrawRef.current.updateScene(sceneData);
   };
 
@@ -49,13 +75,17 @@ const App = () => {
         viewBackgroundColor: "#edf2ff"
       }
     };
-    sceneData.elements = exBlocks;
+    sceneData.elements = manager.getExDrawElements();
     return sceneData;
   };
 
   return React.createElement(
     React.Fragment,
     null,
+    React.createElement(
+      "textarea",
+      { className: "source-code", ref: sourceText, defaultValue: manager.getSource(), cols: "60", rows: "10" },
+    ),
     React.createElement(
       "div",
       { className: "button-wrapper" },
@@ -65,7 +95,23 @@ const App = () => {
           className: "update-scene",
           onClick: updateScene
         },
-        "Load Example"
+        "Reload"
+      ),
+      React.createElement(
+        "button",
+        {
+          className: "toggle-references",
+          onClick: toggleReferences
+        },
+        "Toggle References"
+      ),
+      React.createElement(
+        "button",
+        {
+          className: "toggle-assignments",
+          onClick: toggleAssignments
+        },
+        "Toggle Assignments"
       ),
       React.createElement(
         "button",

@@ -14,6 +14,9 @@ export class BlockManager {
     this.mutations = [];
     this.source = source;
 
+    this.showRefs = false;
+    this.showMutations = false;
+
     // ======== layout =========
     this.graph = new Springy.Graph();
 
@@ -48,18 +51,24 @@ export class BlockManager {
     // this.buildReference();
     this.setPositions();
     this.linkSequence();
-    // this.linkReferences();
-    // this.linkMutations();
+    this.linkReferences();
+    this.linkMutations();
 
     // this.getLayout();
   }
   setPositions() {
     let first = this.blocks[0];
-    if (first) first.setPosition(0, 0);
+    if (first) first.setPosition(300, 150);
     while (first.next) {
       first.next.followPosition(first, (x, y) => [x + 250, y]);
       first = first.next;
     }
+  }
+  toggleReferences() {
+    this.showRefs = !this.showRefs;
+  }
+  toggleMutations() {
+    this.showMutations = !this.showMutations;
   }
   // buildReference() {
   //   this.blocks.forEach((block, blockIndex) => {
@@ -141,6 +150,9 @@ export class BlockManager {
     b.link(link);
     this.links.push(link);
   }
+  getSource() {
+    return this.source;
+  }
   getCode(node) {
     if (node.start === undefined && node.end === undefined) return "";
 
@@ -149,9 +161,9 @@ export class BlockManager {
   getExDrawElements() {
     return _flattenDeep([
       this.blocks.map((block) => block.get()),
-      this.links.map((link) => link.get()),
       this.sequence.map((link) => link.get()),
-      this.mutations.map((mutation) => mutation.get()),
+      this.showRefs ? this.links.map((link) => link.get()) : [],
+      this.showMutations ? this.mutations.map((mutation) => mutation.get()) : [],
     ]);
   }
   getLayout() {

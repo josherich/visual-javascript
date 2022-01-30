@@ -32,7 +32,7 @@ export class ExDrawArrow extends ExDrawElement {
     this.endArrowhead = "arrow";
     this.lastCommittedPoint = null;
     if (this.arrowType !== 'sequence') {
-      this.opacity = 40;
+      this.opacity = 30;
     }
 
     this.setPosition(x, y, ex, ey);
