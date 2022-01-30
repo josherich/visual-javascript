@@ -33,7 +33,7 @@ export class Block {
     this.next = null;
     this.position = null;
     this.exBlock = null;
-    this.exControlFlowBlocks = null;
+    this.controlFlowBlocks = null;
     this.layoutNode = null;
     this.links = [];
 
@@ -49,7 +49,7 @@ export class Block {
       controlFlows: Object.keys(this.controlFlows),
       groupId: this.groupId,
     });
-    // this.exControlFlowBlocks = Object.entries(this.controlFlows).map(
+    // this.controlFlowBlocks = Object.entries(this.controlFlows).map(
     //   ([name, statements]) => {
     //     return new ExDrawBlock({
     //       title: "statments",
@@ -59,7 +59,7 @@ export class Block {
     //     });
     //   }
     // );
-    this.exControlFlowBlocks = Object.entries(this.controlFlows).map(
+    this.controlFlowBlocks = Object.entries(this.controlFlows).map(
       ([name, statements]) => {
         return new BlockGroup({
           nodes: statements,
@@ -77,7 +77,7 @@ export class Block {
   get() {
     return [
       this.exBlock.get(),
-      ...this.exControlFlowBlocks.map((block) => block.get()),
+      ...this.controlFlowBlocks.map((block) => block.get()),
       ...this.links.map((link) => link.get()),
     ];
   }
@@ -89,6 +89,8 @@ export class Block {
       FunctionDeclaration: "Function",
       VariableDeclaration: "Variable",
       IfStatement: "if",
+      WhileStatement: "while",
+      DoWhileStatement: "do-while",
     };
     const expressionStatementMap = {
       AssignmentExpression: "Assignment",
@@ -104,6 +106,15 @@ export class Block {
       title +
       (codeInTitle ? ` (${codeInTitle})` : "")
     );
+  }
+  getInputs() {
+    return this.inputs;
+  }
+  getOutputs() {
+    return this.outputs;
+  }
+  getMutations() {
+    return [this.mutation];
   }
   getInputPosition(index) {
     return this.exBlock.getInputPosition(index);
@@ -130,11 +141,11 @@ export class Block {
   }
   setPosition(x, y) {
     this.exBlock.setPosition(x, y);
-    this.exControlFlowBlocks.forEach((block, index) => {
+    this.controlFlowBlocks.forEach((block, index) => {
       block.setPosition(x + 170, y - 400 + (index + 1) * 300);
     });
     this.links.forEach((link, index) => {
-      const block = this.exControlFlowBlocks[index];
+      const block = this.controlFlowBlocks[index];
       link.setPosition(
         ...this.getControlFlowOutPosition(index),
         ...block.getControlFlowInPosition()
@@ -146,7 +157,7 @@ export class Block {
     this.setPosition(...pos);
   }
   linkControlFlow() {
-    this.links = this.exControlFlowBlocks.map((block, index) => {
+    this.links = this.controlFlowBlocks.map((block, index) => {
       const link = new ExDrawArrow({
         startElement: this.id(),
         endElement: block.id(),

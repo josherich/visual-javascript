@@ -8,6 +8,9 @@ function addA(d) {
   return a + d;
 }
 c = addA(2) + b;
+while (c > 0) {
+  c = c - 1;
+}
 if (c + b > 0) {
   a = 0;
   if (a) {

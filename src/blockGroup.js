@@ -1,6 +1,7 @@
 import { Block } from "./block";
 import { ExDrawBlock } from "./exDrawBlock";
 import _flattenDeep from "lodash/flattenDeep";
+import _flatten from "lodash/flatten";
 import _uniqueId from "lodash/uniqueId";
 
 const BLOCK_GROUP_WIDTH = 340;
@@ -74,6 +75,9 @@ export class BlockGroup {
   }
   getOutputs() {
     return this.unfolded ? this.outputs : _flattenDeep(this.outputs);
+  }
+  getMutations() {
+    return this.mutations.filter(e => e);
   }
   title() {
     return this.groupName;

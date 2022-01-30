@@ -1,5 +1,18 @@
-import { getCode } from "./exampleAST";
+// ======== supported =========
+// VariableDeclaration
+// FunctionDeclaration
+// IfStatement
+// AssignmentExpression
 
+// ========== todo ===========
+// WhileStatement, doWhileStatement
+// ForStatement, for in, for of
+// break
+// return
+// continue
+// try catch finally throw
+// SwitchStatement
+// ConditionalOperator
 const identifierMap = {
   BinaryExpression: ["left", "right"],
   AssignmentExpression: ["left", "right"],
@@ -54,6 +67,8 @@ export const parseInputs = (node) => {
       return parseIdentifiers(node.expression.right);
     case "IfStatement":
       return parseExpression(node.test);
+    case "WhileStatement":
+      return parseExpression(node.test);
     case "FunctionDeclaration":
       const params = parseIdentifiers(node.params);
       return parseIdentifiers(node.body).filter((id) => !params.includes(id));
@@ -106,6 +121,10 @@ export const parseControlFlows = (node) => {
         res.False = parseBlockStatement(node.alternate);
       }
       return res;
+    case "WhileStatement":
+      return {
+        Body: parseBlockStatement(node.body),
+      };
     default:
       return {};
   }
@@ -133,6 +152,10 @@ export const parseSourceCode = (node, getCode) => {
   switch (node.type) {
     case "IfStatement":
       return [node.test, node.consequent, node.alternate].filter(e => e).map(getCode);
+    case "WhileStatement":
+      return [node.test, node.body].filter(e => e).map(getCode);
+    case "DoWhileStatement":
+      return [node.body, node.test].filter(e => e).map(getCode);
     default:
       return "";
   }
@@ -140,8 +163,18 @@ export const parseSourceCode = (node, getCode) => {
 
 export const getCodeInTitle = (name, sourceCode) => {
   switch (name) {
-    case "IfStatement":
-      return sourceCode[0];
+    case "IfStatement": {
+      let [test, consequent, alternate] = sourceCode;
+      return test;
+    }
+    case "WhileStatement": {
+      let [test, body] = sourceCode;
+      return test;
+    }
+    case "DoWhileStatement": {
+      let [body, test] = sourceCode;
+      return test;
+    }
     default:
       return "";
   }

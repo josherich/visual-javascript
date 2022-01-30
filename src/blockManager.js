@@ -58,10 +58,12 @@ export class BlockManager {
   }
   setPositions() {
     let first = this.blocks[0];
+    let index = 0;
     if (first) first.setPosition(300, 150);
     while (first.next) {
-      first.next.followPosition(first, (x, y) => [x + 250, y]);
+      first.next.followPosition(first, (x, y) => [x + 250, y + (index % 2 === 0 ? 120 : -120)]);
       first = first.next;
+      index++;
     }
   }
   toggleReferences() {
@@ -77,38 +79,49 @@ export class BlockManager {
   //     });
   //   });
   // }
+  linkMutation(block, mutation) {
+    let [name, value] = mutation;
+    let targetBlockRef = this.refs[name];
+    if (targetBlockRef) {
+      const targetBlock = this.blocks[targetBlockRef[1]];
+      const link = new ExDrawArrow({
+        type: "mutation",
+        startElement: block.id(),
+        endElement: targetBlock.id(),
+        startPosition: block.getMutationPosition(),
+        endPosition: targetBlock.getMutationPosition(),
+        style: "dotted",
+      });
+      block.link(link);
+      targetBlock.link(link);
+      // this.graph.newEdge(block.layoutNode, targetBlock.layoutNode);
+      this.mutations.push(link);
+    } else {
+      console.warn(`${name} is not defined.`);
+    }
+  }
   linkMutations() {
     // block mutation
     // block's control flow mutation
-    this.mutations = this.blocks
+    this.mutations = [];
+    this.blocks
       .filter((block) => block.mutation)
-      .map((block) => {
-        let [name, value] = block.mutation;
-        let targetBlockRef = this.refs[name];
-        if (targetBlockRef) {
-          const targetBlock = this.blocks[targetBlockRef[1]];
-          const link = new ExDrawArrow({
-            type: "mutation",
-            startElement: block.id(),
-            endElement: targetBlock.id(),
-            startPosition: block.getMutationPosition(),
-            endPosition: targetBlock.getMutationPosition(),
-            style: "dotted",
-          });
-          block.link(link);
-          targetBlock.link(link);
-          this.graph.newEdge(block.layoutNode, targetBlock.layoutNode);
-          return link;
-        } else {
-          console.warn(`${name} is not defined.`);
-          return null;
-        }
-      })
-      .filter((e) => e);
+      .forEach((block) => {
+        block.getMutations().forEach(mutation => {
+          this.linkMutation(block, mutation);
+        });
+      });
+    this.blocks.forEach(block => {
+      block.controlFlowBlocks.forEach(controlFlowblock => {
+        controlFlowblock.getMutations().forEach(_mutation => {
+          this.linkMutation(controlFlowblock, _mutation);
+        });
+      });
+    })
   }
   linkReferences() {
     this.blocks.forEach((block, toBlockIndex) => {
-      block.inputs.forEach((name, toIndex) => {
+      block.getInputs().forEach((name, toIndex) => {
         if (this.refs[name]) {
           const [, fromBlockIndex, fromIndex] = this.refs[name];
           const from = this.blocks[fromBlockIndex];
@@ -116,6 +129,16 @@ export class BlockManager {
           this.link(from, to, fromIndex, toIndex);
           this.graph.newEdge(from.layoutNode, to.layoutNode);
         }
+      });
+      block.controlFlowBlocks.forEach((controlFlowBlock) => {
+        controlFlowBlock.getInputs().forEach((name, toIndex) => {
+          if (this.refs[name]) {
+            const [, fromBlockIndex, fromIndex] = this.refs[name];
+            const from = this.blocks[fromBlockIndex];
+            const to = controlFlowBlock;
+            this.link(from, to, fromIndex, toIndex);
+          }
+        });
       });
     });
   }
