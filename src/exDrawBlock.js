@@ -7,13 +7,14 @@ import { ExDrawLabels } from "./exDrawLabels";
 export class ExDrawBlock {
   constructor({
     title = "statement",
-    content = "",
+    content = null,
     inputs = [],
     outputs = [],
     controlFlows = [],
     groupId = _uniqueId("groupId"),
     isGroup = false,
     isControlFlow = false,
+    size: [w, h] = [140],
   } = {}) {
     this.title = title;
     this.groupId = groupId;
@@ -25,6 +26,7 @@ export class ExDrawBlock {
       position: [this.x, this.y],
       backgroundColor: isGroup ? "#ced4da" : "transparent",
     });
+
     this.title = new ExDrawText({
       title,
       group: this.groupId,
@@ -35,18 +37,20 @@ export class ExDrawBlock {
       direction: "left",
       group: this.groupId,
       position: [this.x, this.y],
+      offset: [w, h],
     });
     this.outputs = new ExDrawLabels({
       names: outputs,
       direction: "right",
       group: this.groupId,
       position: [this.x, this.y],
+      offset: [w, h],
     });
     if (content) {
       this.content = new ExDrawText({
         title: content,
         group: this.groupId,
-        position: [this.x + 10, this.y + 40],
+        position: [this.x + 10, this.y + 18],
       });
     }
     if (controlFlows.length > 0) {
@@ -55,10 +59,13 @@ export class ExDrawBlock {
         direction: "right",
         group: this.groupId,
         position: [this.x, this.y],
+        offset: [w, h],
       });
     }
     if (isControlFlow) {
       this.frame.setSize(140, 60);
+    } else {
+      this.setSize(w, h);
     }
   }
   get() {
@@ -73,6 +80,9 @@ export class ExDrawBlock {
   }
   id() {
     return this.frame.id;
+  }
+  getSize() {
+    return this.frame.getSize();
   }
   getPosition() {
     return this.frame.getPosition();
@@ -90,11 +100,11 @@ export class ExDrawBlock {
     return [this.frame.getPosition()[0], this.frame.getPosition()[1] + 40];
   }
   getControlFlowOutPosition(index) {
-    const outY = index === undefined ? this.frame.getPosition()[1] + 40 : this.controlFlows.getLinkPosition(index)[1];
-    return [
-      this.frame.getPosition()[0] + this.frame.width,
-      outY,
-    ];
+    const outY =
+      index === undefined
+        ? this.frame.getPosition()[1] + 40
+        : this.controlFlows.getLinkPosition(index)[1];
+    return [this.frame.getPosition()[0] + this.frame.width, outY];
   }
   getMutationPosition() {
     return this.frame.getPosition();
@@ -102,14 +112,40 @@ export class ExDrawBlock {
 
   // setter
   setSize(width, height) {
-    this.frame.setSize(width, height);
+    const bottomPadding = 10;
+    const AdjustedHeight =
+      height ||
+      Math.max(
+        this.inputs.getSize()[1],
+        this.outputs.getSize()[1],
+        this.controlFlows ? this.controlFlows.getSize()[1] : 0
+      ) +
+        this.title.getSize()[1] +
+        bottomPadding +
+        (this.content
+        ? this.content.getSize()[1]
+        : 0);
+    this.frame.setSize(width, AdjustedHeight);
   }
   setPosition(x, y) {
+    const titleOffsetX = 5;
+    const titleOffsetY = 0;
+
+    const contentOffsetX = 5;
+    const contentOffsetY = 26;
+
+    const inputOffsetX = 5;
+    const inputOffsetY = 26;
+
+    const controlFlowOffsetX = 5;
+    const controlFlowOffsetY = 26;
+
     this.frame.setPosition(x, y);
-    this.title.setPosition(x, y);
+    this.title.setPosition(x + 5, y);
     this.inputs.setPosition(x, y);
     this.outputs.setPosition(x, y);
-    if (this.content) this.content.setPosition(x + 10, y + 40);
+
+    if (this.content) this.content.setPosition(x + 5, y + 26);
     if (this.controlFlows) this.controlFlows.setPosition(x, y);
   }
   link(arrow) {

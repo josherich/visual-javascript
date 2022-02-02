@@ -125,6 +125,10 @@ export const parseControlFlows = (node) => {
       return {
         Body: parseBlockStatement(node.body),
       };
+    case "DoWhileStatement":
+      return {
+        Body: parseBlockStatement(node.body),
+      };
     case "BreakStatement":
       return {
         Exit: [],
@@ -164,6 +168,12 @@ export const parseSourceCode = (node, getCode) => {
       return [node.test, node.body].filter(e => e).map(getCode);
     case "DoWhileStatement":
       return [node.body, node.test].filter(e => e).map(getCode);
+    case 'ReturnStatement':
+      return [node.argument].filter(e => e).map(getCode);
+    case "ExpressionStatement":
+      if (node.expression?.type === "AssignmentExpression") {
+        return [node.expression].filter(e => e).map(getCode);
+      }
     default:
       return "";
   }
@@ -183,7 +193,19 @@ export const getCodeInTitle = (name, sourceCode) => {
       let [body, test] = sourceCode;
       return test;
     }
+    case 'ReturnStatement': {
+      let [expression] = sourceCode;
+      return expression;
+    }
+    case 'AssignmentExpression': {
+      let [expression] = sourceCode;
+      return expression;
+    }
     default:
       return "";
   }
 };
+
+export const formatCode = (code) => {
+  return code.replace(/\n/g, " ").replace(/\s+/g, " ");
+}

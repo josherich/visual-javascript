@@ -10,11 +10,12 @@ import {
   parseBlockType,
   parseSourceCode,
   getCodeInTitle,
+  formatCode,
 } from "./blockParser";
 
 /* Block is the AST representation that manages UI elements */
 export class Block {
-  constructor({node, keysInScope, getCode, groupId}={}) {
+  constructor({ node, keysInScope, getCode, groupId } = {}) {
     // ast node
     this.name = node.type;
     this.keysInScope = keysInScope;
@@ -26,8 +27,10 @@ export class Block {
     this.outputs = parseOutputs(node, keysInScope); // if var declaration
     this.mutation = parseMutation(node);
     this.controlFlows = parseControlFlows(node); // control flow statement
-    this.blockType = parseBlockType(node, getCode);
+    // this.blockType = parseBlockType(node, getCode);
     this.sourceCode = parseSourceCode(node, getCode);
+    this.title = this.title();
+    this.content = this.content();
 
     this.prev = null;
     this.next = null;
@@ -43,9 +46,10 @@ export class Block {
   drawBlock() {
     // draw block in position(x,y)
     this.exBlock = new ExDrawBlock({
-      title: this.title(),
+      title: this.title,
       inputs: this.inputs,
       outputs: this.outputs,
+      content: this.content,
       controlFlows: Object.keys(this.controlFlows),
       groupId: this.groupId,
       isControlFlow: this.isControlFlowBlock(),
@@ -60,10 +64,10 @@ export class Block {
     //     });
     //   }
     // );
-    this.controlFlowBlocks = Object.entries(this.controlFlows).map(
-      ([name, statements]) => {
+    this.controlFlowBlocks = Object.entries(this.controlFlows)
+      .map(([name, statements]) => {
         if (name === "Exit") {
-          return null
+          return null;
         } else {
           return new BlockGroup({
             nodes: statements,
@@ -71,7 +75,8 @@ export class Block {
             getCode: this.getCode,
           });
         }
-    }).filter(e => e);
+      })
+      .filter((e) => e);
     this.linkControlFlow();
   }
 
@@ -100,18 +105,23 @@ export class Block {
     };
     const expressionStatementMap = {
       AssignmentExpression: "Assignment",
-    }
+    };
     title = identifierNameMap[this.name];
-    if (this.name === 'ExpressionStatement') {
+    if (this.name === "ExpressionStatement") {
       title = expressionStatementMap[this.node.expression.type];
     }
-    if (this.blockType) {
-      title += ` ${this.blockType}`;
+    if (this.name === "ReturnStatement") {
+      title = "Return";
     }
-    return (
-      title +
-      (codeInTitle ? ` (${codeInTitle})` : "")
-    );
+
+    return title + (codeInTitle ? ` (${codeInTitle.slice(0, 10)})` : "");
+  }
+  content() {
+    if (this.name === 'ExpressionStatement' && this.node.expression?.type === 'AssignmentExpression') {
+      let [expression] = this.sourceCode
+      return formatCode(expression).slice(0, 18);
+    }
+    return '';
   }
   getInputs() {
     return this.inputs;
@@ -126,16 +136,27 @@ export class Block {
     const jumpBlocks = [];
     const recursivelyFindBreakReturnBlocks = (block) => {
       if (block instanceof BlockGroup) {
-        block.blocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+        block.blocks.forEach((block) =>
+          recursivelyFindBreakReturnBlocks(block)
+        );
       } else if (block instanceof Block) {
-        if (['WhileStatement', 'DoWhileStatement', 'ForStatement'].includes(block.name)) return;
-        if (['BreakStatement'].includes(block.name)) {
+        if (
+          ["WhileStatement", "DoWhileStatement", "ForStatement"].includes(
+            block.name
+          )
+        )
+          return;
+        if (["BreakStatement"].includes(block.name)) {
           return jumpBlocks.push(block);
         }
-        block.controlFlowBlocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+        block.controlFlowBlocks.forEach((block) =>
+          recursivelyFindBreakReturnBlocks(block)
+        );
       }
-    }
-    this.controlFlowBlocks.forEach(block => recursivelyFindBreakReturnBlocks(block));
+    };
+    this.controlFlowBlocks.forEach((block) =>
+      recursivelyFindBreakReturnBlocks(block)
+    );
     return jumpBlocks;
   }
   getInputPosition(index) {
@@ -156,9 +177,12 @@ export class Block {
   getPosition() {
     return this.exBlock.getPosition();
   }
+  getSize() {
+    return this.exBlock.getSize();
+  }
   // Boolean getter
   isControlFlowBlock() {
-    return ['BreakStatement', 'ContinueStatement'].includes(this.name);
+    return ["BreakStatement", "ContinueStatement"].includes(this.name);
   }
 
   // setter

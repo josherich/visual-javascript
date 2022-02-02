@@ -42,6 +42,9 @@ export class ExDrawElement {
   getPosition() {
     return [this.x, this.y];
   }
+  getSize() {
+    return [this.width, this.height];
+  }
   joinGroup(groupId) {
     this.groupId = groupId;
   }

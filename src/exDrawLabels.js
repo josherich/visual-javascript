@@ -2,34 +2,42 @@ import { ExDrawText } from "./exDrawText";
 import { ExDrawCircle } from "./exDrawCircle";
 import _flatten from "lodash/flatten";
 
-const baselineHeight = 18;
-const padding = 6;
+const BASELINEHEIGHT = 18;
+const PADDING = 0;
 const baseX = 5;
-const baseY = 30;
+const baseY = 18;
 
 export class ExDrawLabels {
-  constructor({ names, direction, group, position: [x, y] } = {}) {
+  constructor({
+    names,
+    direction,
+    group,
+    position: [x, y],
+    offset: [w, h] = [110, 100],
+  } = {}) {
     this.direction = direction;
+    this.offset = [w, h];
     this.nodes = names.map((title, index) => {
       return [
         new ExDrawCircle({ group, position: [0, 0] }),
-        new ExDrawText({ title, group, position: [0, 0] })
+        new ExDrawText({ title, group, position: [0, 0] }),
       ];
     });
   }
   setPosition(x, y) {
+    let [w, h] = this.offset;
     this.nodes.forEach(([circle, text], index) => {
       const labelX = x + baseX;
-      const labelY = y + baseY + index * (baselineHeight + padding);
+      const labelY = y + baseY + index * (BASELINEHEIGHT + PADDING);
       const textOffsetY = -5;
       const circleOffsetY = 5;
       if (this.direction === "left") {
         circle.setPosition(labelX, labelY + circleOffsetY);
-        text.setPosition(labelX + 15, labelY + textOffsetY);
+        text.setPosition(labelX + 25, labelY + textOffsetY);
       } else {
         const textWidth = text.getTextWidth();
-        circle.setPosition(labelX + 110, labelY + circleOffsetY);
-        text.setPosition(labelX + 110 - textWidth, labelY + textOffsetY);
+        circle.setPosition(labelX + w - 25, labelY + circleOffsetY);
+        text.setPosition(labelX + w - 25 - textWidth, labelY + textOffsetY);
       }
     });
   }
@@ -47,5 +55,8 @@ export class ExDrawLabels {
   get() {
     const nodes = _flatten(this.nodes).map((el) => el.get());
     return nodes;
+  }
+  getSize() {
+    return [0, this.nodes.length * (BASELINEHEIGHT + PADDING)]
   }
 }

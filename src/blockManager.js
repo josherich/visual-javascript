@@ -1,8 +1,7 @@
 import _flattenDeep from "lodash/flattenDeep";
-import { Block } from "./block";
-import { BlockGroup } from "./blockGroup";
 import { ExDrawArrow } from "./exDrawArrow";
 import { Springy } from "./layout";
+import { BlockFactory } from "./blockFactory";
 
 /* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {
@@ -22,17 +21,7 @@ export class BlockManager {
 
     statements.forEach((statementNode) => {
       const keysInScope = Object.keys(this.refs);
-      const block = Array.isArray(statementNode)
-        ? new BlockGroup({
-            nodes: statementNode,
-            keysInScope,
-            getCode: this.getCode.bind(this),
-          })
-        : new Block({
-            node: statementNode,
-            keysInScope,
-            getCode: this.getCode.bind(this),
-          });
+      const block = BlockFactory({node: statementNode, keysInScope, getCode: this.getCode.bind(this)});
 
       const layoutNode = this.graph.newNode({ label: statementNode.type });
       block.setLayoutNode(layoutNode);
@@ -61,7 +50,8 @@ export class BlockManager {
     let index = 0;
     if (first) first.setPosition(300, 150);
     while (first.next) {
-      first.next.followPosition(first, (x, y) => [x + 250, y + (index % 2 === 0 ? 120 : -120)]);
+      const [w, h] = first.getSize();
+      first.next.followPosition(first, (x, y) => [x + w + 30, y + (index % 2 === 0 ? 120 : -120)]);
       first = first.next;
       index++;
     }

@@ -19,7 +19,7 @@ export class ExDrawText extends ExDrawElement {
     this.setPosition(x, y);
   }
   setPosition(x, y) {
-    this.x = x + 5;
+    this.x = x;
     this.y = y;
   }
   getPosition() {
@@ -30,5 +30,8 @@ export class ExDrawText extends ExDrawElement {
   }
   getTextWidth() {
     return this.text.length * 6.5 + 5;
+  }
+  getSize() {
+    return [this.width, this.height];
   }
 }
