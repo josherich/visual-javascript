@@ -96,6 +96,9 @@ export class ExDrawBlock {
       this.outputs.getLinkPosition(index)[1],
     ];
   }
+  getContentOffset() {
+    return [Math.max(this.inputs.getSize()[0], 20), this.title.getSize()[1]];
+  }
   getControlFlowInPosition() {
     return [this.frame.getPosition()[0], this.frame.getPosition()[1] + 40];
   }

@@ -84,7 +84,7 @@ const App = () => {
     null,
     React.createElement(
       "textarea",
-      { className: "source-code", ref: sourceText, defaultValue: manager.getSource(), cols: "60", rows: "10" },
+      { className: "source-code", ref: sourceText, defaultValue: manager.getSource(), cols: "25", rows: "10" },
     ),
     React.createElement(
       "div",

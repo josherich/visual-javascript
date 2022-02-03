@@ -42,8 +42,8 @@ export class BlockGroup {
     this.backgroundBlock = new ExDrawBlock({
       title: this.groupName,
       // content: this.nodes.map(this.getCode).join("\n"),
-      inputs: this.unfolded ? this.inputs : _flattenDeep(this.inputs),
-      outputs: this.unfolded ? this.outputs : _flattenDeep(this.outputs),
+      inputs: this.getInputs(),
+      outputs: this.getOutputs(),
       groupId: this.groupId,
       isGroup: true,
       size: [BLOCK_GROUP_WIDTH, this.getContentSize()[1] + BLOCK_GROUP_PADDING],
@@ -77,10 +77,10 @@ export class BlockGroup {
     return "Statement Group";
   }
   getInputs() {
-    return this.unfolded ? this.inputs : _flattenDeep(this.inputs);
+    return Array.from(new Set(this.unfolded ? this.inputs : _flattenDeep(this.inputs)));
   }
   getOutputs() {
-    return this.unfolded ? this.outputs : _flattenDeep(this.outputs);
+    return Array.from(new Set(this.unfolded ? this.outputs : _flattenDeep(this.outputs)));
   }
   getMutations() {
     return this.mutations.filter(e => e);
@@ -99,12 +99,12 @@ export class BlockGroup {
   }
   getControlFlowInPosition() {
     let [x, y] = this.backgroundBlock.getPosition();
-    return [x, y + 140];
+    return [x, y + this.getSize()[1] / 2];
   }
   getControlFlowOutPosition(index) {
     let [x, y] = this.backgroundBlock.getPosition();
     let [w, h] = this.backgroundBlock.getSize();
-    return [x + w, y + 140];
+    return [x + w, y + this.getSize()[1] / 2];
   }
   getPosition() {
     return this.backgroundBlock.getPosition();
@@ -128,13 +128,14 @@ export class BlockGroup {
   }
   setPosition(x, y) {
     this.backgroundBlock.setPosition(x, y);
+    const offsetX = this.backgroundBlock.getContentOffset()[0];
     this.blocks.forEach((block, index) => {
       if (index === 0) {
-        block.setPosition(x + 20, y + 40);
+        block.setPosition(x + offsetX, y + 40);
       } else {
         const [_x, _y] = this.blocks[index - 1].getPosition();
         const [w, h] = this.blocks[index - 1].getSize();
-        block.setPosition(x + 20, _y + 10 + h);
+        block.setPosition(x + offsetX, _y + 10 + h);
       }
     });
   }

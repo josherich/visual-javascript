@@ -13,15 +13,12 @@ export class ExDrawText extends ExDrawElement {
     this.textAlign = "left";
     this.fontSize = 12;
     this.fontFamily = 3;
-    this.width = 6.5 * this.text.length;
+    this.width = 6.5 * this.text.length + 5;
     this.height = this.baseline;
     this.verticalAlign = "top";
     this.setPosition(x, y);
   }
-  setPosition(x, y) {
-    this.x = x;
-    this.y = y;
-  }
+  // getter
   getPosition() {
     return [this.x, this.y];
   }
@@ -33,5 +30,10 @@ export class ExDrawText extends ExDrawElement {
   }
   getSize() {
     return [this.width, this.height];
+  }
+  // setter
+  setPosition(x, y) {
+    this.x = x;
+    this.y = y;
   }
 }

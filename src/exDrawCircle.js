@@ -12,6 +12,17 @@ export class ExDrawCircle extends ExDrawElement {
 
     this.setPosition(x, y);
   }
+  // getter
+  getPosition() {
+    return [this.x, this.y];
+  }
+  get() {
+    return Object.assign({}, this, ExDrawElement.prototype.base.call(this));
+  }
+  getSize() {
+    return [this.width + 5, this.height];
+  }
+  // setter
   setSize(w, h) {
     this.width = w;
     this.height = h;
@@ -19,11 +30,5 @@ export class ExDrawCircle extends ExDrawElement {
   setPosition(x, y) {
     this.x = x + 5;
     this.y = y;
-  }
-  getPosition() {
-    return [this.x, this.y];
-  }
-  get() {
-    return Object.assign({}, this, ExDrawElement.prototype.base.call(this));
   }
 }

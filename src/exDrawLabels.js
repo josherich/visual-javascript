@@ -47,7 +47,6 @@ export class ExDrawLabels {
   getLinkCircle(index) {
     const pair = this.nodes[index];
     if (!pair) {
-      console.log(this.nodes, this.direction);
       return null;
     }
     return this.direction === "left" ? pair[0] : pair[1];
@@ -57,6 +56,15 @@ export class ExDrawLabels {
     return nodes;
   }
   getSize() {
-    return [0, this.nodes.length * (BASELINEHEIGHT + PADDING)]
+    return [
+      this.nodes.length === 0
+        ? 0
+        : Math.max(
+            ...this.nodes.map(
+              (node) => node[1].getSize()[0] + node[0].getSize()[0] + baseX * 3
+            )
+          ),
+      this.nodes.length * (BASELINEHEIGHT + PADDING),
+    ];
   }
 }

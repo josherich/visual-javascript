@@ -191,8 +191,13 @@ export class Block {
   }
   setPosition(x, y) {
     this.exBlock.setPosition(x, y);
+    const [w, h] = this.getSize();
     this.controlFlowBlocks.forEach((block, index) => {
-      block.setPosition(x + 170, y - 400 + (index + 1) * 300);
+      if (index === 0) {
+        block.setPosition(x + w + 40, y - 0);
+      } else {
+        block.setPosition(x + w + 40, y - 0 + this.controlFlowBlocks[index - 1].getSize()[1] + 40);
+      }
     });
     this.links.forEach((link, index) => {
       const block = this.controlFlowBlocks[index];

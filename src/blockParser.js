@@ -13,12 +13,18 @@
 // try catch finally throw
 // SwitchStatement
 // ConditionalOperator
+import _flatten from "lodash/flatten";
+
 const identifierMap = {
   BinaryExpression: ["left", "right"],
   AssignmentExpression: ["left", "right"],
   CallExpression: ["callee", "arguments"],
   BlockStatement: ["body"],
   ReturnStatement: ["argument"],
+  ObjectExpression: ["properties"],
+  Property: ["value"],
+  CallExpression: ["callee", "arguments"],
+  MemberExpression: ["object"],
 };
 
 const identifierNameMap = {
@@ -60,21 +66,32 @@ const parseVarDeclarations = (declarations) => {
 // ======================= public =======================
 
 export const parseInputs = (node) => {
+  let res = []
   switch (node.type) {
     case "VariableDeclaration":
-      return [];
+      res = [];
+      break;
     case "ExpressionStatement":
-      return parseIdentifiers(node.expression.right);
+      res = parseIdentifiers(node.expression.right);
+      break;
+    case "ObjectExpression":
+      res = _flatten(node.properties.map((prop) => parseInputs(prop.value)));
+      break;
     case "IfStatement":
-      return parseExpression(node.test);
+      res = parseExpression(node.test);
+      break;
     case "WhileStatement":
-      return parseExpression(node.test);
+      res = parseExpression(node.test);
+      break;
     case "FunctionDeclaration":
       const params = parseIdentifiers(node.params);
-      return parseIdentifiers(node.body).filter((id) => !params.includes(id));
+      res = parseIdentifiers(node.body).filter((id) => !params.includes(id));
+      break;
     default:
-      return [];
+      res = [];
   }
+  res = excludeBuiltin(new Set(res));
+  return Array.from(res);
 };
 
 // keys in scope can tell assignment and gloabal declaration
@@ -208,4 +225,11 @@ export const getCodeInTitle = (name, sourceCode) => {
 
 export const formatCode = (code) => {
   return code.replace(/\n/g, " ").replace(/\s+/g, " ");
+}
+
+const excludeBuiltin = (keywordSet) => {
+  ['Math', 'Infinity', 'NaN', 'undefined', 'null', 'true', 'false'].forEach(keyword => {
+    keywordSet.delete(keyword);
+  });
+  return keywordSet;
 }

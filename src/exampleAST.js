@@ -70,5 +70,5 @@ function lomutoPartition(pivot, left, right) {
   return p;
 }
 `
-export const exampleAST = acorn.parse(exampleSource, { ecmaVersion: 2020 });
-export const source = exampleSource;
+export const exampleAST = acorn.parse(mandelbrotSource, { ecmaVersion: 2020 });
+export const source = mandelbrotSource;
