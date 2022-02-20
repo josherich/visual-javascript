@@ -2,6 +2,7 @@ import _flattenDeep from "lodash/flattenDeep";
 import { ExDrawArrow } from "./exDrawArrow";
 import { Springy } from "./layout";
 import { BlockFactory } from "./blockFactory";
+import generate from "@babel/generator";
 
 /* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {
@@ -18,6 +19,7 @@ export class BlockManager {
 
     // ======== layout =========
     this.graph = new Springy.Graph();
+    this.statements = statements;
 
     statements.forEach((statementNode) => {
       const keysInScope = Object.keys(this.refs);
@@ -227,5 +229,17 @@ export class BlockManager {
       }
     );
     this.renderer.start();
+  }
+
+  generate() {
+    return generate({
+      type: "Program",
+      end: 444,
+      sourceType: "script",
+      start: 0,
+      body: this.statements
+    }, {
+      comments: true
+    })
   }
 }

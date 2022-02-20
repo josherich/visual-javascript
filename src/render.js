@@ -1,6 +1,7 @@
 import { exampleAST, source } from "./exampleAST";
 import { BlockManager } from "./blockManager";
-const acorn = require("acorn");
+import generate from "@babel/generator";
+import { parse } from "@babel/parser";
 
 // ===================================================================
 let actions = {};
@@ -13,13 +14,17 @@ export let manager = {};
 export const exampleSource = source;
 
 const start = () => {
-  const statements = exampleAST["body"];
+  const statements = exampleAST['program']["body"];
   manager = new BlockManager(statements, source);
 };
 
 export const reload = (source) => {
-  const ast = acorn.parse(source, { ecmaVersion: 2020 });
-  manager = new BlockManager(ast["body"], source);
+  const ast = parse(source, { ecmaVersion: 2020 });
+  manager = new BlockManager(ast['program']["body"], source);
+}
+
+export const gen = () => {
+  console.log(manager.generate());
 }
 // ====================================================================
 start();

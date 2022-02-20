@@ -1,6 +1,6 @@
 /*eslint-disable */
 import "./styles.css";
-import { manager, reload } from "./render";
+import { manager, reload, gen } from "./render";
 
 const App = () => {
   const excalidrawRef = React.useRef(null);
@@ -40,6 +40,7 @@ const App = () => {
       }
     };
     reload(sourceText.current.value);
+    gen();
     sceneData.elements = manager.getExDrawElements();
     excalidrawRef.current.updateScene(sceneData);
   };
@@ -164,7 +165,9 @@ const App = () => {
         height: dimensions.height,
         initialData: exampleScene(),
         // onChange: (elements, state) =>
-        // console.log("Elements :", elements, "State : ", state),
+          // console.log("Elements :", elements, "State : ", state),
+        onSelect: (elements, groupIds) =>
+          console.log("Elements :", elements, "GroupIds : ", groupIds),
         // onPointerUpdate: (payload) => console.log(payload),
         // onCollabButtonClick: () => window.alert("You clicked on collab button"),
         viewModeEnabled: viewModeEnabled,

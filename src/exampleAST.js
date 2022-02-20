@@ -1,4 +1,5 @@
-const acorn = require("acorn");
+import { parse } from "@babel/parser";
+
 const exampleSource = `
 let z = { x: 0, y: 0 }, s;
 var b = 5;
@@ -36,7 +37,10 @@ function mandelbrot(c) {
     } while (d <= 2 && n < MAX_ITERATION)
     return [n, d <= 2]
 }
+mandelbrot(1);
+c = 1;
 `;
+
 const quickSortSource = `
 const kCutOff = 1;
 function quickSort(left, right) {
@@ -70,5 +74,5 @@ function lomutoPartition(pivot, left, right) {
   return p;
 }
 `
-export const exampleAST = acorn.parse(mandelbrotSource, { ecmaVersion: 2020 });
+export const exampleAST = parse(mandelbrotSource, { ecmaVersion: 2020 });
 export const source = mandelbrotSource;

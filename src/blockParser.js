@@ -38,8 +38,27 @@ const parseBlockStatement = (blockStatement) => {
   return blockStatement.body; // list of BlockStatement
 };
 
-const parseExpression = (expression) => {
-  return parseIdentifiers(expression);
+const parseStatementInputs = (statement) => {
+  return parseIdentifiers(statement);
+};
+
+const parseExpressionInputs = (expression) => {
+  // primamry expression
+  // lhs expressoin
+  //  - call expression
+  // update expression
+  // unary expression
+  // assignment expression
+  switch (expression.type) {
+    case "CallExpression":
+      const closureInputs = [];
+      const argumentInputs = parseIdentifiers(expression.arguments);
+      return closureInputs.concat(argumentInputs);
+    case "AssignmentExpression":
+      return parseIdentifiers(expression.right);
+    default:
+      return [];
+  }
 };
 
 const parseIdentifiers = (expression) => {
@@ -72,16 +91,16 @@ export const parseInputs = (node) => {
       res = [];
       break;
     case "ExpressionStatement":
-      res = parseIdentifiers(node.expression.right);
+      res = parseExpressionInputs(node.expression);
       break;
     case "ObjectExpression":
       res = _flatten(node.properties.map((prop) => parseInputs(prop.value)));
       break;
     case "IfStatement":
-      res = parseExpression(node.test);
+      res = parseStatementInputs(node.test);
       break;
     case "WhileStatement":
-      res = parseExpression(node.test);
+      res = parseStatementInputs(node.test);
       break;
     case "FunctionDeclaration":
       const params = parseIdentifiers(node.params);
@@ -190,37 +209,39 @@ export const parseSourceCode = (node, getCode) => {
     case "ExpressionStatement":
       if (node.expression?.type === "AssignmentExpression") {
         return [node.expression].filter(e => e).map(getCode);
+      } else if (node.expression?.type === "CallExpression") {
+        return [node.expression.callee.name];
       }
     default:
       return "";
   }
 };
 
-export const getCodeInTitle = (name, sourceCode) => {
-  switch (name) {
-    case "IfStatement": {
-      let [test, consequent, alternate] = sourceCode;
-      return test;
+export const parseSubtitle = (node, getCode) => {
+  return astHandler(node, {
+    'IfStatement': (node) => {
+      return getCode(node.test);
+    },
+    'WhileStatement': (node) => {
+      return getCode(node.test);
+    },
+    'DoWhileStatement': (node) => {
+      return getCode(node.test);
+    },
+    'ReturnStatement': (node) => {
+      return getCode(node.argument);
+    },
+    'ExpressionStatement': {
+      'expression': {
+        'AssignmentExpression': (node) => {
+          return getCode(node)
+        },
+        'CallExpression': (node) => {
+          return node.callee.name;
+        }
+      }
     }
-    case "WhileStatement": {
-      let [test, body] = sourceCode;
-      return test;
-    }
-    case "DoWhileStatement": {
-      let [body, test] = sourceCode;
-      return test;
-    }
-    case 'ReturnStatement': {
-      let [expression] = sourceCode;
-      return expression;
-    }
-    case 'AssignmentExpression': {
-      let [expression] = sourceCode;
-      return expression;
-    }
-    default:
-      return "";
-  }
+  });
 };
 
 export const formatCode = (code) => {
@@ -233,3 +254,25 @@ const excludeBuiltin = (keywordSet) => {
   });
   return keywordSet;
 }
+
+const astHandler = (node, handlerMap) => {
+  const _handler = (_node, _handlerMap) => {
+    if (!(_node.type in _handlerMap)) {
+      return null;
+    }
+    const maybeHandler = _handlerMap[_node.type];
+    if (typeof maybeHandler === 'function') {
+      return maybeHandler(_node);
+    } else if (typeof maybeHandler === 'object') {
+      for (let path in maybeHandler) {
+        const innerNode = _node[path];
+        const innerMap = maybeHandler[path];
+        if (innerNode.type in innerMap) {
+          return _handler(innerNode, innerMap);
+        }
+      }
+    }
+    return null;
+  };
+  return _handler(node, handlerMap);
+};

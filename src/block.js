@@ -9,7 +9,7 @@ import {
   parseControlFlows,
   parseBlockType,
   parseSourceCode,
-  getCodeInTitle,
+  parseSubtitle,
   formatCode,
 } from "./blockParser";
 
@@ -29,7 +29,7 @@ export class Block {
     this.controlFlows = parseControlFlows(node); // control flow statement
     // this.blockType = parseBlockType(node, getCode);
     this.sourceCode = parseSourceCode(node, getCode);
-    this.title = this.title();
+    this.title = this.parseTitle(node, getCode);
     this.content = this.content();
 
     this.prev = null;
@@ -91,9 +91,9 @@ export class Block {
       ...this.links.map((link) => link.get()),
     ];
   }
-  title() {
+  parseTitle(node, getCode) {
     let title = this.name;
-    const codeInTitle = getCodeInTitle(this.name, this.sourceCode);
+    const codeInTitle = parseSubtitle(node, getCode);
     const identifierNameMap = {
       FunctionDeclaration: "Function",
       VariableDeclaration: "Variable",
@@ -105,6 +105,7 @@ export class Block {
     };
     const expressionStatementMap = {
       AssignmentExpression: "Assignment",
+      CallExpression: "Call",
     };
     title = identifierNameMap[this.name];
     if (this.name === "ExpressionStatement") {

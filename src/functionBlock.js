@@ -14,8 +14,6 @@ import {
   parseMutation,
   parseControlFlows,
   parseBlockType,
-  parseSourceCode,
-  getCodeInTitle,
 } from "./blockParser";
 
 export class FunctionBlock {
