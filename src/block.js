@@ -9,6 +9,7 @@ import {
   parseControlFlows,
   parseBlockType,
   parseSourceCode,
+  parseEditData,
   parseSubtitle,
   formatCode,
 } from "./blockParser";
@@ -29,6 +30,7 @@ export class Block {
     this.controlFlows = parseControlFlows(node); // control flow statement
     // this.blockType = parseBlockType(node, getCode);
     this.sourceCode = parseSourceCode(node, getCode);
+    this.editData = parseEditData(node);
     this.title = this.parseTitle(node, getCode);
     this.content = this.content();
 
@@ -132,6 +134,12 @@ export class Block {
   }
   getMutations() {
     return [this.mutation];
+  }
+  getEditData() {
+    if (this.name === "VariableDeclaration") {
+      return this.editData;
+    }
+    return null;
   }
   getBreakReturnBlocks() {
     const jumpBlocks = [];

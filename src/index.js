@@ -1,5 +1,7 @@
 /*eslint-disable */
 import "./styles.css";
+import "semantic-ui-css/semantic.min.css";
+
 import { manager, reload, gen } from "./render";
 
 const App = () => {
@@ -9,6 +11,7 @@ const App = () => {
     width: undefined,
     height: undefined
   });
+  const [edits, setEdits] = React.useState([]);
 
   const [viewModeEnabled, setViewModeEnabled] = React.useState(false);
   const [zenModeEnabled, setZenModeEnabled] = React.useState(true);
@@ -89,6 +92,37 @@ const App = () => {
     ),
     React.createElement(
       "div",
+      { className: "ui right attached internal rail" },
+      React.createElement(
+        "div",
+        { className: "ui segment" },
+        React.createElement(
+          "form",
+          { className: "ui form" },
+          React.createElement(
+            "div",
+            { className: "field" },
+            edits.map(edit => {
+              return React.createElement(
+                "div",
+                { key: edit.name },
+                React.createElement(
+                  "label",
+                  {},
+                  edit.name
+                ),
+                React.createElement(
+                  "input",
+                  { placeholder: edit.name, type: "text", value: edit.value },
+                ),
+              )
+            })
+          ),
+        ),
+      ),
+    ),
+    React.createElement(
+      "div",
       { className: "button-wrapper" },
       React.createElement(
         "button",
@@ -166,8 +200,14 @@ const App = () => {
         initialData: exampleScene(),
         // onChange: (elements, state) =>
           // console.log("Elements :", elements, "State : ", state),
-        onSelect: (elements, groupIds) =>
-          console.log("Elements :", elements, "GroupIds : ", groupIds),
+        onSelect: (elements, groupIds) => {
+          console.log("Elements :", elements, "GroupIds : ", groupIds);
+          const block = manager.getBlockById(groupIds[0]);
+          if (block && block.getEditData()) {
+            console.log(block.getEditData())
+            setEdits(block.getEditData());
+          }
+        },
         // onPointerUpdate: (payload) => console.log(payload),
         // onCollabButtonClick: () => window.alert("You clicked on collab button"),
         viewModeEnabled: viewModeEnabled,

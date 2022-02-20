@@ -216,7 +216,23 @@ export const parseSourceCode = (node, getCode) => {
       return "";
   }
 };
-
+export const parseEditData = (node) => {
+  return astHandler(node, {
+    'VariableDeclaration': (node) => {
+      return node.declarations.map(dec => {
+        if (dec.init && dec.init.type === "NumericLiteral") {
+          return {
+            name: dec.id.name,
+            value: dec.init.value,
+            path: 'init.value'
+          }
+        } else {
+          return null;
+        }
+      }).filter(e => e);
+    },
+  })
+}
 export const parseSubtitle = (node, getCode) => {
   return astHandler(node, {
     'IfStatement': (node) => {

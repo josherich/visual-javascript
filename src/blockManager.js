@@ -180,6 +180,9 @@ export class BlockManager {
     b.link(link);
     this.links.push(link);
   }
+  getBlockById(id) {
+    return this.blocks.find(block => block.id() === id);
+  }
   getSource() {
     return this.source;
   }

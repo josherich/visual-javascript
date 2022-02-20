@@ -79,7 +79,7 @@ export class ExDrawBlock {
     ];
   }
   id() {
-    return this.frame.id;
+    return this.groupId;
   }
   getSize() {
     return this.frame.getSize();
