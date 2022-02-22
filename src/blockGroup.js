@@ -12,8 +12,8 @@ import {
   parseInputs,
   parseOutputs,
   parseMutation,
-  parseControlFlows,
-  parseBlockType,
+  parseEditData,
+  setNode,
 } from "./blockParser";
 
 export class BlockGroup {
@@ -30,6 +30,7 @@ export class BlockGroup {
     this.blocks = this.parseBlocks(nodes, keysInScope);
     this.inputs = this.parseInputs(nodes, keysInScope);
     this.outputs = this.parseOutputs(nodes, keysInScope);
+    this.editData = parseEditData(nodes);
     this.mutations = this.parseMutations(nodes, keysInScope);
     this.controlFlowBlocks = [];
 
@@ -67,9 +68,18 @@ export class BlockGroup {
   id() {
     return this.backgroundBlock.id();
   }
+  linkId() {
+    return this.backgroundBlock.linkId();
+  }
   get() {
     return _flattenDeep([this.backgroundBlock.get(), this.blocks.map(block => block.get())]);
     // return _flattenDeep([this.backgroundBlock.get(), this.unfolded ? this.blocks.map(block => block.get()) : []]);
+  }
+  getGroupId() {
+    return this.backgroundBlock.groupId;
+  }
+  getNode() {
+    return this.nodes;
   }
   getGroupTitle() {
     return "Statement Group";
@@ -121,6 +131,9 @@ export class BlockGroup {
   }
 
   // setter
+  edit(path, value) {
+    setNode(this.nodes, path, value);
+  }
   setLayoutNode(node) {
     this.layoutNode = node;
   }
@@ -165,5 +178,11 @@ export class BlockGroup {
     return nodes.map((node) => {
       return parseMutation(node);
     });
+  }
+  getEditData() {
+    if (this.name === "VariableDeclaration") {
+      return this.editData;
+    }
+    return null;
   }
 }

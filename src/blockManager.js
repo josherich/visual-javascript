@@ -78,8 +78,8 @@ export class BlockManager {
       const targetBlock = this.blocks[targetBlockRef[1]];
       const link = new ExDrawArrow({
         type: "mutation",
-        startElement: block.id(),
-        endElement: targetBlock.id(),
+        startElement: block.linkId(),
+        endElement: targetBlock.linkId(),
         startPosition: block.getMutationPosition(),
         endPosition: targetBlock.getMutationPosition(),
         style: "dotted",
@@ -138,8 +138,8 @@ export class BlockManager {
     const linkSequence = (a, b) => {
       const link = new ExDrawArrow({
         type: "sequence",
-        startElement: a.id(),
-        endElement: b.id(),
+        startElement: a.linkId(),
+        endElement: b.linkId(),
         startPosition: a.getControlFlowOutPosition(),
         endPosition: b.getControlFlowInPosition(),
       });
@@ -150,8 +150,8 @@ export class BlockManager {
     const linkBreakReturn = (a, b) => {
       const link = new ExDrawArrow({
         type: "sequence",
-        startElement: a.id(),
-        endElement: b.id(),
+        startElement: a.linkId(),
+        endElement: b.linkId(),
         startPosition: a.getControlFlowOutPosition(),
         endPosition: b.getControlFlowInPosition(),
       });
@@ -171,8 +171,8 @@ export class BlockManager {
   link(a, b, fromIndex, toIndex) {
     const link = new ExDrawArrow({
       type: "ref",
-      startElement: a.id(),
-      endElement: b.id(),
+      startElement: a.linkId(),
+      endElement: b.linkId(),
       startPosition: a.getOutputPosition(fromIndex),
       endPosition: b.getInputPosition(toIndex),
     });
@@ -240,7 +240,7 @@ export class BlockManager {
       end: 444,
       sourceType: "script",
       start: 0,
-      body: this.statements
+      body: this.blocks.map(block => block.getNode()),
     }, {
       comments: true
     })

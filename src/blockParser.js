@@ -219,12 +219,12 @@ export const parseSourceCode = (node, getCode) => {
 export const parseEditData = (node) => {
   return astHandler(node, {
     'VariableDeclaration': (node) => {
-      return node.declarations.map(dec => {
+      return node.declarations.map((dec, index) => {
         if (dec.init && dec.init.type === "NumericLiteral") {
           return {
             name: dec.id.name,
             value: dec.init.value,
-            path: 'init.value'
+            path: `declarations.${index}.init.value`
           }
         } else {
           return null;
@@ -263,6 +263,22 @@ export const parseSubtitle = (node, getCode) => {
 export const formatCode = (code) => {
   return code.replace(/\n/g, " ").replace(/\s+/g, " ");
 }
+
+export const setNode = (node, path, value) => {
+  const keys = path.split('.');
+  let n = node;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!n[keys[i]]) {
+      return null;
+    }
+    n = n[keys[i]];
+  }
+  const type = typeof n[keys[keys.length - 1]]
+  n[keys[keys.length - 1]] = type === 'number' ? parseInt(value) : value;
+  return node;
+}
+
+/* private */
 
 const excludeBuiltin = (keywordSet) => {
   ['Math', 'Infinity', 'NaN', 'undefined', 'null', 'true', 'false'].forEach(keyword => {

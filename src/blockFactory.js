@@ -5,7 +5,7 @@ import { Block } from "./block";
 export const BlockFactory = ({node, keysInScope, getCode, groupId}={}) => {
   if (node.type === "FunctionDeclaration") {
     return new FunctionBlock({
-      nodes: node.body.body,
+      node,
       keysInScope,
       getCode,
       signature: [node.id.name, node.params.map(p => p.name)],

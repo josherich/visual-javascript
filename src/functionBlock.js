@@ -10,15 +10,14 @@ const BLOCK_HEIGHT = 100;
 
 import {
   parseInputs,
-  parseOutputs,
   parseMutation,
-  parseControlFlows,
-  parseBlockType,
+  parseEditData,
 } from "./blockParser";
 
 export class FunctionBlock {
-  constructor({nodes, signature = [], keysInScope, getCode, unfolded = false }={}) {
-    this.nodes = nodes;
+  constructor({node, signature = [], keysInScope, getCode, unfolded = false }={}) {
+    this.node = node;
+    this.nodes = node.body.body;
     this.signature = signature;
     this.keysInScope = keysInScope;
     this.getCode = getCode;
@@ -28,10 +27,11 @@ export class FunctionBlock {
     this.groupName = this.getGroupTitle();
 
     // this.background = new Block(null, keysInScope);
-    this.blocks = this.parseBlocks(nodes, keysInScope);
-    this.inputs = this.parseInputs(nodes, keysInScope);
-    this.outputs = this.parseOutputs(nodes, keysInScope);
-    this.mutations = this.parseMutations(nodes, keysInScope);
+    this.blocks = this.parseBlocks(this.nodes, keysInScope);
+    this.inputs = this.parseInputs(this.nodes, keysInScope);
+    this.outputs = this.parseOutputs(this.nodes, keysInScope);
+    this.editData = parseEditData(this.nodes);
+    this.mutations = this.parseMutations(this.nodes, keysInScope);
     this.controlFlowBlocks = [];
 
     this.exBlocks = [];
@@ -67,9 +67,18 @@ export class FunctionBlock {
   id() {
     return this.backgroundBlock.id();
   }
+  linkId() {
+    return this.backgroundBlock.linkId();
+  }
+  getGroupId() {
+    return this.backgroundBlock.groupId;
+  }
   get() {
     return _flattenDeep([this.backgroundBlock.get(), this.blocks.map(block => block.get())]);
     // return _flattenDeep([this.backgroundBlock.get(), this.unfolded ? this.blocks.map(block => block.get()) : []]);
+  }
+  getNode() {
+    return this.node;
   }
   getGroupTitle() {
     let [fname, ...args] = this.signature;
@@ -110,6 +119,12 @@ export class FunctionBlock {
   }
   getSize() {
     return this.backgroundBlock.getSize();
+  }
+  getEditData() {
+    if (this.name === "VariableDeclaration") {
+      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
+    }
+    return null;
   }
   getContentSize() {
     return this.blocks.reduce((acc, block) => {

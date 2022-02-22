@@ -7,10 +7,10 @@ import {
   parseOutputs,
   parseMutation,
   parseControlFlows,
-  parseBlockType,
   parseSourceCode,
   parseEditData,
   parseSubtitle,
+  setNode,
   formatCode,
 } from "./blockParser";
 
@@ -86,12 +86,21 @@ export class Block {
   id() {
     return this.exBlock.id();
   }
+  linkId() {
+    return this.exBlock.linkId();
+  }
+  getGroupId() {
+    return this.exBlock.groupId;
+  }
   get() {
     return [
       this.exBlock.get(),
       ...this.controlFlowBlocks.map((block) => block.get()),
       ...this.links.map((link) => link.get()),
     ];
+  }
+  getNode() {
+    return this.node;
   }
   parseTitle(node, getCode) {
     let title = this.name;
@@ -137,7 +146,7 @@ export class Block {
   }
   getEditData() {
     if (this.name === "VariableDeclaration") {
-      return this.editData;
+      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
     }
     return null;
   }
@@ -195,6 +204,9 @@ export class Block {
   }
 
   // setter
+  edit(path, value) {
+    setNode(this.node, path, value);
+  }
   setLayoutNode(node) {
     this.layoutNode = node;
   }
@@ -223,8 +235,8 @@ export class Block {
   linkControlFlow() {
     this.links = this.controlFlowBlocks.map((block, index) => {
       const link = new ExDrawArrow({
-        startElement: this.id(),
-        endElement: block.id(),
+        startElement: this.linkId(),
+        endElement: block.linkId(),
         startPosition: this.getControlFlowOutPosition(index),
         endPosition: block.getControlFlowInPosition(),
       });

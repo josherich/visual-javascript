@@ -26,7 +26,7 @@ export class ExDrawElement {
     this.angle = 0;
     this.boundElements = null;
 
-    this.id = _uniqueId("id");
+    this.id = _uniqueId(this.type);
     this.seed = Date.now();
 
     if (group) this.joinGroup(group);

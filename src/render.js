@@ -23,8 +23,8 @@ export const reload = (source) => {
   manager = new BlockManager(ast['program']["body"], source);
 }
 
-export const gen = () => {
-  console.log(manager.generate());
+export const codeGen = () => {
+  return manager.generate()?.code;
 }
 // ====================================================================
 start();

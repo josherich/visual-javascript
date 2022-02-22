@@ -2,7 +2,7 @@
 import "./styles.css";
 import "semantic-ui-css/semantic.min.css";
 
-import { manager, reload, gen } from "./render";
+import { manager, reload, codeGen } from "./render";
 
 const App = () => {
   const excalidrawRef = React.useRef(null);
@@ -12,6 +12,11 @@ const App = () => {
     height: undefined
   });
   const [edits, setEdits] = React.useState([]);
+  const [layout, setLayout] = React.useState({
+    slider: true,
+    editor: true,
+  });
+  const [source, setSource] = React.useState(manager.getSource());
 
   const [viewModeEnabled, setViewModeEnabled] = React.useState(false);
   const [zenModeEnabled, setZenModeEnabled] = React.useState(true);
@@ -42,11 +47,18 @@ const App = () => {
         viewBackgroundColor: "#edf2ff"
       }
     };
-    reload(sourceText.current.value);
-    gen();
-    sceneData.elements = manager.getExDrawElements();
-    excalidrawRef.current.updateScene(sceneData);
+    if (sourceText.current) {
+      reload(sourceText.current.value);
+      sceneData.elements = manager.getExDrawElements();
+      excadlidrawRef.current.updateScene(sceneData);
+    }
   };
+
+  const updateSource = (id, path, value) => {
+    const block = manager.getBlockById(id);
+    block.edit(path, value);
+    sourceText.current.value = codeGen();
+  }
 
   const toggleReferences = () => {
     const sceneData = {
@@ -87,134 +99,169 @@ const App = () => {
     React.Fragment,
     null,
     React.createElement(
-      "textarea",
-      { className: "source-code", ref: sourceText, defaultValue: manager.getSource(), cols: "25", rows: "10" },
+      "div",
+      { className: "body" },
+      layout.editor ? React.createElement(
+        "div",
+        { className: "ui source-code" },
+        React.createElement(
+          "div",
+          { className: "ui form" },
+          React.createElement(
+            "textarea",
+            { className: "", ref: sourceText, defaultValue: source, cols: "80", rows: "10" },
+          )
+        ),
+
+      ) : null,
+      React.createElement(
+        "div",
+        {
+          className: "excalidraw-wrapper",
+          ref: excalidrawWrapperRef
+        },
+        React.createElement(Excalidraw.default, {
+          ref: excalidrawRef,
+          width: dimensions.width,
+          height: dimensions.height,
+          initialData: exampleScene(),
+          // onChange: (elements, state) =>
+            // console.log("Elements :", elements, "State : ", state),
+          onSelect: (elements, groupIds) => {
+            // console.log("Elements :", elements, "GroupIds : ", groupIds);
+            const block = manager.getBlockById(groupIds[0]);
+            if (block && block.getEditData()) {
+              setEdits(block.getEditData());
+            } else {
+              setEdits([]);
+            }
+          },
+          // onPointerUpdate: (payload) => console.log(payload),
+          // onCollabButtonClick: () => window.alert("You clicked on collab button"),
+          viewModeEnabled: viewModeEnabled,
+          zenModeEnabled: zenModeEnabled,
+          gridModeEnabled: gridModeEnabled
+        })
+      )
     ),
+    layout.slider ?
     React.createElement(
       "div",
       { className: "ui right attached internal rail" },
+
       React.createElement(
         "div",
-        { className: "ui segment" },
+        { className: "button-wrapper" },
         React.createElement(
-          "form",
-          { className: "ui form" },
-          React.createElement(
-            "div",
-            { className: "field" },
-            edits.map(edit => {
-              return React.createElement(
-                "div",
-                { key: edit.name },
-                React.createElement(
-                  "label",
-                  {},
-                  edit.name
-                ),
-                React.createElement(
-                  "input",
-                  { placeholder: edit.name, type: "text", value: edit.value },
-                ),
-              )
-            })
-          ),
+          "button",
+          {
+            className: "update-scene ui button tiny",
+            onClick: updateScene
+          },
+          "Reload"
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "toggle-references ui button tiny",
+            onClick: toggleReferences
+          },
+          "Toggle References"
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "toggle-assignments ui button tiny",
+            onClick: toggleAssignments
+          },
+          "Toggle Assignments"
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "reset-scene ui button tiny",
+            onClick: () => excalidrawRef.current.resetScene()
+          },
+          "Reset Scene"
+        ),
+        React.createElement(
+          "label",
+          null,
+          React.createElement("input", {
+            type: "checkbox",
+            checked: viewModeEnabled,
+            onChange: () => setViewModeEnabled(!viewModeEnabled)
+          }),
+          "View mode"
+        ),
+        React.createElement(
+          "label",
+          null,
+          React.createElement("input", {
+            type: "checkbox",
+            checked: zenModeEnabled,
+            onChange: () => setZenModeEnabled(!zenModeEnabled)
+          }),
+          "Zen mode"
+        ),
+        React.createElement(
+          "label",
+          null,
+          React.createElement("input", {
+            type: "checkbox",
+            checked: gridModeEnabled,
+            onChange: () => setGridModeEnabled(!gridModeEnabled)
+          }),
+          "Grid mode"
+        )
+      ),
+      React.createElement(
+        "form",
+        { className: "ui form" },
+        React.createElement(
+          "div",
+          { className: "field" },
+          edits.map(edit => {
+            return React.createElement(
+              "div",
+              { key: edit.name },
+              React.createElement(
+                "label",
+                {},
+                edit.name
+              ),
+              React.createElement(
+                "input",
+                {
+                  placeholder: edit.name,
+                  type: "text",
+                  defaultValue: edit.value,
+                  onBlur: (e) => {
+                    updateSource(edit.id, edit.path, e.target.value);
+                  }
+                },
+              ),
+            )
+          })
         ),
       ),
-    ),
+
+    ) : null,
     React.createElement(
       "div",
-      { className: "button-wrapper" },
+      { className: "layout" },
       React.createElement(
         "button",
-        {
-          className: "update-scene",
-          onClick: updateScene
-        },
-        "Reload"
+        {className: "ui button tiny", onClick: () => setLayout({slider: !layout.slider, editor: layout.editor})},
+        "Slider"
       ),
       React.createElement(
         "button",
-        {
-          className: "toggle-references",
-          onClick: toggleReferences
-        },
-        "Toggle References"
+        {className: "ui button tiny", onClick: () => setLayout({editor: !layout.editor, slider: layout.slider})},
+        "Editor"
       ),
-      React.createElement(
-        "button",
-        {
-          className: "toggle-assignments",
-          onClick: toggleAssignments
-        },
-        "Toggle Assignments"
-      ),
-      React.createElement(
-        "button",
-        {
-          className: "reset-scene",
-          onClick: () => excalidrawRef.current.resetScene()
-        },
-        "Reset Scene"
-      ),
-      React.createElement(
-        "label",
-        null,
-        React.createElement("input", {
-          type: "checkbox",
-          checked: viewModeEnabled,
-          onChange: () => setViewModeEnabled(!viewModeEnabled)
-        }),
-        "View mode"
-      ),
-      React.createElement(
-        "label",
-        null,
-        React.createElement("input", {
-          type: "checkbox",
-          checked: zenModeEnabled,
-          onChange: () => setZenModeEnabled(!zenModeEnabled)
-        }),
-        "Zen mode"
-      ),
-      React.createElement(
-        "label",
-        null,
-        React.createElement("input", {
-          type: "checkbox",
-          checked: gridModeEnabled,
-          onChange: () => setGridModeEnabled(!gridModeEnabled)
-        }),
-        "Grid mode"
-      )
     ),
-    React.createElement(
-      "div",
-      {
-        className: "excalidraw-wrapper",
-        ref: excalidrawWrapperRef
-      },
-      React.createElement(Excalidraw.default, {
-        ref: excalidrawRef,
-        width: dimensions.width,
-        height: dimensions.height,
-        initialData: exampleScene(),
-        // onChange: (elements, state) =>
-          // console.log("Elements :", elements, "State : ", state),
-        onSelect: (elements, groupIds) => {
-          console.log("Elements :", elements, "GroupIds : ", groupIds);
-          const block = manager.getBlockById(groupIds[0]);
-          if (block && block.getEditData()) {
-            console.log(block.getEditData())
-            setEdits(block.getEditData());
-          }
-        },
-        // onPointerUpdate: (payload) => console.log(payload),
-        // onCollabButtonClick: () => window.alert("You clicked on collab button"),
-        viewModeEnabled: viewModeEnabled,
-        zenModeEnabled: zenModeEnabled,
-        gridModeEnabled: gridModeEnabled
-      })
-    )
+
   );
 };
 

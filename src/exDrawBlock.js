@@ -81,6 +81,9 @@ export class ExDrawBlock {
   id() {
     return this.groupId;
   }
+  linkId() {
+    return this.frame.id;
+  }
   getSize() {
     return this.frame.getSize();
   }

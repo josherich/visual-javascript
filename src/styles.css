@@ -3,24 +3,39 @@
   text-align: center;
 }
 .source-code {
-  position: absolute;
-  top: 20px;
-  left: 60px;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  z-index: 9;
+  padding: 20px;
+  background: white;
+}
+.layout {
+  position: fixed;
+  top: 0;
+  left: 20%;
+  margin-left: -40px;
+  z-index: 9;
+}
+.ui.rail {
+  z-index: 9;
+  background: white;
+}
+.ui.rail .ui.form {
+  padding: 16px;
 }
 .button-wrapper button {
   z-index: 1;
-  height: 50px;
-  width: 100px;
-  margin: 10px;
-  padding: 5px;
+  margin: 2px !important;
   vertical-align: top;
 }
 
 .button-wrapper label {
   display: inline-block;
-  height: 50px;
-  margin: 10px;
   padding: 5px;
+}
+.button-wrapper label input {
+  margin-right: 2px;
 }
 
 .excalidraw .App-menu_top .buttonList {
@@ -29,7 +44,6 @@
 
 .excalidraw-wrapper {
   height: 800px;
-  margin: 50px;
   position: relative;
 }
 
