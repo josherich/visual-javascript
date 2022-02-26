@@ -1,5 +1,5 @@
 import { Block } from "./block";
-import { ExDrawBlock } from "./exDrawBlock";
+import { ExDrawBlock } from "../excalidraw/exDrawBlock";
 import _flattenDeep from "lodash/flattenDeep";
 import _flatten from "lodash/flatten";
 import _uniqueId from "lodash/uniqueId";

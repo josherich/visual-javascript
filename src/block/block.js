@@ -1,5 +1,5 @@
-import { ExDrawBlock } from "./exDrawBlock";
-import { ExDrawArrow } from "./exDrawArrow";
+import { ExDrawBlock } from "../excalidraw/exDrawBlock";
+import { ExDrawArrow } from "../excalidraw/exDrawArrow";
 import { BlockGroup } from "./blockGroup";
 
 import {
@@ -9,15 +9,14 @@ import {
   parseControlFlows,
   parseSourceCode,
   parseEditData,
-  parseSubtitle,
+  parseTitle,
+  parseContent,
   setNode,
-  formatCode,
 } from "./blockParser";
 
 /* Block is the AST representation that manages UI elements */
 export class Block {
   constructor({ node, keysInScope, getCode, groupId } = {}) {
-    // ast node
     this.name = node.type;
     this.keysInScope = keysInScope;
     this.getCode = getCode;
@@ -28,11 +27,11 @@ export class Block {
     this.outputs = parseOutputs(node, keysInScope); // if var declaration
     this.mutation = parseMutation(node);
     this.controlFlows = parseControlFlows(node); // control flow statement
-    // this.blockType = parseBlockType(node, getCode);
     this.sourceCode = parseSourceCode(node, getCode);
     this.editData = parseEditData(node);
-    this.title = this.parseTitle(node, getCode);
-    this.content = this.content();
+
+    this.title = parseTitle(node, getCode);
+    this.content = parseContent(node, getCode);
 
     this.prev = null;
     this.next = null;
@@ -46,7 +45,6 @@ export class Block {
   }
 
   drawBlock() {
-    // draw block in position(x,y)
     this.exBlock = new ExDrawBlock({
       title: this.title,
       inputs: this.inputs,
@@ -56,16 +54,7 @@ export class Block {
       groupId: this.groupId,
       isControlFlow: this.isControlFlowBlock(),
     });
-    // this.controlFlowBlocks = Object.entries(this.controlFlows).map(
-    //   ([name, statements]) => {
-    //     return new ExDrawBlock({
-    //       title: "statments",
-    //       content: statements.map(this.getCode).join("\n"),
-    //       inputs: [],
-    //       outputs: [],
-    //     });
-    //   }
-    // );
+
     this.controlFlowBlocks = Object.entries(this.controlFlows)
       .map(([name, statements]) => {
         if (name === "Exit") {
@@ -82,15 +71,14 @@ export class Block {
     this.linkControlFlow();
   }
 
-  // getter
+  /*
+  ** 1. public get
+  */
   id() {
     return this.exBlock.id();
   }
   linkId() {
     return this.exBlock.linkId();
-  }
-  getGroupId() {
-    return this.exBlock.groupId;
   }
   get() {
     return [
@@ -99,42 +87,13 @@ export class Block {
       ...this.links.map((link) => link.get()),
     ];
   }
+  getGroupId() {
+    return this.exBlock.groupId;
+  }
   getNode() {
     return this.node;
   }
-  parseTitle(node, getCode) {
-    let title = this.name;
-    const codeInTitle = parseSubtitle(node, getCode);
-    const identifierNameMap = {
-      FunctionDeclaration: "Function",
-      VariableDeclaration: "Variable",
-      IfStatement: "if",
-      WhileStatement: "while",
-      DoWhileStatement: "do-while",
-      BreakStatement: "break",
-      ContinueStatement: "continue",
-    };
-    const expressionStatementMap = {
-      AssignmentExpression: "Assignment",
-      CallExpression: "Call",
-    };
-    title = identifierNameMap[this.name];
-    if (this.name === "ExpressionStatement") {
-      title = expressionStatementMap[this.node.expression.type];
-    }
-    if (this.name === "ReturnStatement") {
-      title = "Return";
-    }
 
-    return title + (codeInTitle ? ` (${codeInTitle.slice(0, 10)})` : "");
-  }
-  content() {
-    if (this.name === 'ExpressionStatement' && this.node.expression?.type === 'AssignmentExpression') {
-      let [expression] = this.sourceCode
-      return formatCode(expression).slice(0, 18);
-    }
-    return '';
-  }
   getInputs() {
     return this.inputs;
   }
@@ -177,6 +136,10 @@ export class Block {
     );
     return jumpBlocks;
   }
+
+  /*
+  ** 2. UI getter
+  */
   getInputPosition(index) {
     return this.exBlock.getInputPosition(index);
   }
@@ -198,12 +161,17 @@ export class Block {
   getSize() {
     return this.exBlock.getSize();
   }
-  // Boolean getter
+
+  /*
+  ** 3. Boolean getter
+  */
   isControlFlowBlock() {
     return ["BreakStatement", "ContinueStatement"].includes(this.name);
   }
 
-  // setter
+  /*
+  ** 4. public setter
+  */
   edit(path, value) {
     setNode(this.node, path, value);
   }

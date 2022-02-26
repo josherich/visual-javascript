@@ -1,6 +1,5 @@
 /*eslint-disable */
-import "./styles.css";
-import "semantic-ui-css/semantic.min.css";
+// import "./styles.css";
 
 import { manager, reload, codeGen } from "./render";
 

@@ -1,8 +1,9 @@
 import _flattenDeep from "lodash/flattenDeep";
-import { ExDrawArrow } from "./exDrawArrow";
-import { Springy } from "./layout";
-import { BlockFactory } from "./blockFactory";
 import generate from "@babel/generator";
+
+import { ExDrawArrow } from "../excalidraw/exDrawArrow";
+import { Springy } from "../layout";
+import { BlockFactory } from "./blockFactory";
 
 /* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {

@@ -1,6 +1,5 @@
 import { exampleAST, source } from "./exampleAST";
-import { BlockManager } from "./blockManager";
-import generate from "@babel/generator";
+import { BlockManager } from "./block/blockManager";
 import { parse } from "@babel/parser";
 
 // ===================================================================

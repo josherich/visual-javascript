@@ -28,10 +28,14 @@ const identifierMap = {
 };
 
 const identifierNameMap = {
-  ExpressionStatement: "statement",
-  FunctionDeclaration: "function",
-  VariableDeclaration: "variable",
+  ExpressionStatement: "Statement",
+  FunctionDeclaration: "Function",
+  VariableDeclaration: "Variable",
   IfStatement: "if",
+  WhileStatement: "while",
+  DoWhileStatement: "do-while",
+  BreakStatement: "break",
+  ContinueStatement: "continue",
 };
 
 const parseBlockStatement = (blockStatement) => {
@@ -216,6 +220,7 @@ export const parseSourceCode = (node, getCode) => {
       return "";
   }
 };
+
 export const parseEditData = (node) => {
   return astHandler(node, {
     'VariableDeclaration': (node) => {
@@ -233,6 +238,34 @@ export const parseEditData = (node) => {
     },
   })
 }
+
+export const parseTitle = (node, getCode) => {
+  let title = node.type;
+  const codeInTitle = parseSubtitle(node, getCode);
+
+  title = identifierNameMap[node.type];
+  if (node.type === "ExpressionStatement") {
+    const expressionStatementMap = {
+      AssignmentExpression: "Assignment",
+      CallExpression: "Call",
+    };
+    title = expressionStatementMap[node.expression.type];
+  }
+  if (node.type === "ReturnStatement") {
+    title = "Return";
+  }
+
+  return title + (codeInTitle ? ` (${codeInTitle.slice(0, 10)})` : "");
+}
+
+export const parseContent = (node, getCode) => {
+  if (node.type === 'ExpressionStatement' && node.expression?.type === 'AssignmentExpression') {
+    let expression = getCode(node);
+    return formatCode(expression).slice(0, 18);
+  }
+  return '';
+}
+
 export const parseSubtitle = (node, getCode) => {
   return astHandler(node, {
     'IfStatement': (node) => {

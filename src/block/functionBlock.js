@@ -1,8 +1,9 @@
-import { Block } from "./block";
-import { ExDrawBlock } from "./exDrawBlock";
 import _flattenDeep from "lodash/flattenDeep";
 import _flatten from "lodash/flatten";
 import _uniqueId from "lodash/uniqueId";
+
+import { Block } from "./block";
+import { ExDrawBlock } from "../excalidraw/exDrawBlock";
 
 const BLOCK_GROUP_WIDTH = 340;
 const BLOCK_GROUP_PADDING = 40;
