@@ -18,12 +18,19 @@ export class ExDrawText extends ExDrawElement {
     this.verticalAlign = "top";
     this.setPosition(x, y);
   }
-  // getter
-  getPosition() {
-    return [this.x, this.y];
-  }
+
+  /*
+  ** public get
+  */
   get() {
     return Object.assign({}, this, ExDrawElement.prototype.base.call(this));
+  }
+
+  /*
+  ** UI get
+  */
+  getPosition() {
+    return [this.x, this.y];
   }
   getTextWidth() {
     return this.text.length * 6.5 + 5;
@@ -31,7 +38,10 @@ export class ExDrawText extends ExDrawElement {
   getSize() {
     return [this.width, this.height];
   }
-  // setter
+
+  /*
+  ** public set
+  */
   setPosition(x, y) {
     this.x = x;
     this.y = y;

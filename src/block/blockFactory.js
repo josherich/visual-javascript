@@ -2,7 +2,8 @@ import { BlockGroup } from "./blockGroup";
 import { FunctionBlock } from "./functionBlock";
 import { Block } from "./block";
 
-export const BlockFactory = ({node, keysInScope, getCode, groupId}={}) => {
+// three types of blocks: function, single statement, multi statements
+export const BlockFactory = ({ node, keysInScope, getCode }={}) => {
   if (node.type === "FunctionDeclaration") {
     return new FunctionBlock({
       node,

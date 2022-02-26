@@ -24,6 +24,32 @@ export class ExDrawLabels {
       ];
     });
   }
+
+  /*
+  ** ========== public get ==========
+  */
+  get() {
+    const nodes = _flatten(this.nodes).map((el) => el.get());
+    return nodes;
+  }
+
+  /*
+  ** ========== UI get ==========
+  */
+  getLinkPosition(index) {
+    return this.getLinkCircle(index).getPosition();
+  }
+  getLinkCircle(index) {
+    const pair = this.nodes[index];
+    if (!pair) {
+      return null;
+    }
+    return this.direction === "left" ? pair[0] : pair[1];
+  }
+
+  /*
+  ** ========== public set ==========
+  */
   setPosition(x, y) {
     let [w, h] = this.offset;
     this.nodes.forEach(([circle, text], index) => {
@@ -40,31 +66,5 @@ export class ExDrawLabels {
         text.setPosition(labelX + w - 25 - textWidth, labelY + textOffsetY);
       }
     });
-  }
-  getLinkPosition(index) {
-    return this.getLinkCircle(index).getPosition();
-  }
-  getLinkCircle(index) {
-    const pair = this.nodes[index];
-    if (!pair) {
-      return null;
-    }
-    return this.direction === "left" ? pair[0] : pair[1];
-  }
-  get() {
-    const nodes = _flatten(this.nodes).map((el) => el.get());
-    return nodes;
-  }
-  getSize() {
-    return [
-      this.nodes.length === 0
-        ? 0
-        : Math.max(
-            ...this.nodes.map(
-              (node) => node[1].getSize()[0] + node[0].getSize()[0] + baseX * 3
-            )
-          ),
-      this.nodes.length * (BASELINEHEIGHT + PADDING),
-    ];
   }
 }

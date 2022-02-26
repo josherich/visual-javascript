@@ -19,7 +19,7 @@ while (c > 0) {
 }
 var x = a + b;
 `;
-const mandelbrotSource = `const MAX_ITERATION = 80
+const mandelbrotSource = `const MAX_ITERATION = 80;
 function mandelbrot(c) {
     let z = { x: 0, y: 0 }, n = 0, p, d;
     do {
@@ -36,8 +36,8 @@ function mandelbrot(c) {
     } while (d <= 2 && n < MAX_ITERATION)
     return [n, d <= 2]
 }
-mandelbrot(1);
-c = 1;`;
+const a = 1;
+mandelbrot(a);`;
 
 const quickSortSource = `
 const kCutOff = 1;

@@ -68,6 +68,10 @@ export class ExDrawBlock {
       this.setSize(w, h);
     }
   }
+
+  /*
+  ** ========== public get ==========
+  */
   get() {
     return [
       this.frame.get(),
@@ -84,6 +88,10 @@ export class ExDrawBlock {
   linkId() {
     return this.frame.id;
   }
+
+  /*
+  ** ========== UI get ==========
+  */
   getSize() {
     return this.frame.getSize();
   }
@@ -116,7 +124,9 @@ export class ExDrawBlock {
     return this.frame.getPosition();
   }
 
-  // setter
+  /*
+  ** ========== public set ==========
+  */
   setSize(width, height) {
     const bottomPadding = 10;
     const AdjustedHeight =

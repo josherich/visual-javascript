@@ -37,10 +37,10 @@ export class BlockGroup {
     this.exBlocks = [];
     this.drawBlock();
   }
+
   drawBackground() {
     this.backgroundBlock = new ExDrawBlock({
       title: this.groupName,
-      // content: this.nodes.map(this.getCode).join("\n"),
       inputs: this.getInputs(),
       outputs: this.getOutputs(),
       groupId: this.groupId,
@@ -64,7 +64,9 @@ export class BlockGroup {
     this.drawBlock();
   }
 
-  // getter
+  /*
+  ** 1. public get
+  */
   id() {
     return this.backgroundBlock.id();
   }
@@ -96,6 +98,19 @@ export class BlockGroup {
   title() {
     return this.groupName;
   }
+  getBreakReturnBlocks() {
+    return []
+  }
+  getEditData() {
+    if (this.name === "VariableDeclaration") {
+      return this.editData;
+    }
+    return null;
+  }
+
+  /*
+  ** 2. UI getter
+  */
   getInputPosition(index) {
     return this.backgroundBlock.getInputPosition(index);
   }
@@ -126,11 +141,14 @@ export class BlockGroup {
       return [Math.max(acc[0], w), acc[1] + h + 10 * 2, ];
     }, [0, 0]);
   }
-  getBreakReturnBlocks() {
-    return []
-  }
 
-  // setter
+  /*
+  ** 3. Boolean getter
+  */
+
+  /*
+  ** 4. public setter
+  */
   edit(path, value) {
     setNode(this.nodes, path, value);
   }
@@ -158,7 +176,9 @@ export class BlockGroup {
     this.backgroundBlock.link(arrow);
   }
 
-  // private
+  /*
+  ** private
+  */
   parseBlocks(nodes, keysInScope) {
     return nodes.map((node) => {
       return new Block({node, keysInScope, getCode: this.getCode, groupId: this.groupId});
@@ -179,10 +199,5 @@ export class BlockGroup {
       return parseMutation(node);
     });
   }
-  getEditData() {
-    if (this.name === "VariableDeclaration") {
-      return this.editData;
-    }
-    return null;
-  }
+
 }

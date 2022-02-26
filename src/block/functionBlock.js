@@ -27,17 +27,17 @@ export class FunctionBlock {
     this.groupId = _uniqueId("functionGroup");
     this.groupName = this.getGroupTitle();
 
-    // this.background = new Block(null, keysInScope);
-    this.blocks = this.parseBlocks(this.nodes, keysInScope);
-    this.inputs = this.parseInputs(this.nodes, keysInScope);
-    this.outputs = this.parseOutputs(this.nodes, keysInScope);
+    this.blocks = this.#parseBlocks(this.nodes, keysInScope);
+    this.inputs = this.#parseInputs(this.nodes, keysInScope);
+    this.outputs = this.#parseOutputs(this.nodes, keysInScope);
     this.editData = parseEditData(this.nodes);
-    this.mutations = this.parseMutations(this.nodes, keysInScope);
+    this.mutations = this.#parseMutations(this.nodes, keysInScope);
     this.controlFlowBlocks = [];
 
     this.exBlocks = [];
     this.drawBlock();
   }
+
   drawBackground() {
     this.backgroundBlock = new ExDrawBlock({
       title: this.groupName,
@@ -64,7 +64,9 @@ export class FunctionBlock {
     this.drawBlock();
   }
 
-  // getter
+  /*
+  ** 1. public get
+  */
   id() {
     return this.backgroundBlock.id();
   }
@@ -97,6 +99,16 @@ export class FunctionBlock {
   title() {
     return this.groupName;
   }
+  getEditData() {
+    if (this.name === "VariableDeclaration") {
+      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
+    }
+    return null;
+  }
+
+  /*
+  ** 2. UI getter
+  */
   getInputPosition(index) {
     return this.backgroundBlock.getInputPosition(index);
   }
@@ -121,12 +133,7 @@ export class FunctionBlock {
   getSize() {
     return this.backgroundBlock.getSize();
   }
-  getEditData() {
-    if (this.name === "VariableDeclaration") {
-      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
-    }
-    return null;
-  }
+
   getContentSize() {
     return this.blocks.reduce((acc, block) => {
       const [w, h] = block.getSize();
@@ -137,7 +144,13 @@ export class FunctionBlock {
     return []
   }
 
-  // setter
+  /*
+  ** 3. Boolean getter
+  */
+
+  /*
+  ** 4. public setter
+  */
   setLayoutNode(node) {
     this.layoutNode = node;
   }
@@ -162,25 +175,27 @@ export class FunctionBlock {
     this.backgroundBlock.link(arrow);
   }
 
-  // private
-  parseBlocks(nodes, keysInScope) {
+  /*
+  ** private
+  */
+  #parseBlocks(nodes, keysInScope) {
     return nodes.map((node) => {
       return new Block({node, keysInScope, getCode: this.getCode, groupId: this.groupId});
     });
   }
-  parseInputs(nodes) {
+  #parseInputs(nodes) {
     return nodes.map((node) => {
       return parseInputs(node);
     });
   }
-  parseOutputs(nodes, keysInScope) {
+  #parseOutputs(nodes, keysInScope) {
     let [fname, ...args] = this.signature;
     return [fname];
     // return nodes.map((node) => {
     //   return parseOutputs(node, keysInScope);
     // });
   }
-  parseMutations(nodes) {
+  #parseMutations(nodes) {
     return nodes.map((node) => {
       return parseMutation(node);
     });

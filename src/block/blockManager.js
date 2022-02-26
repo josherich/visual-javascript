@@ -18,7 +18,6 @@ export class BlockManager {
     this.showRefs = false;
     this.showMutations = false;
 
-    // ======== layout =========
     this.graph = new Springy.Graph();
     this.statements = statements;
 
@@ -48,6 +47,79 @@ export class BlockManager {
 
     // this.getLayout();
   }
+
+  /*
+  ** 1. public get
+  */
+  getBlockById(id) {
+    return this.blocks.find(block => block.id() === id);
+  }
+  getSource() {
+    return this.source;
+  }
+  getCode(node) {
+    if (node.start === undefined && node.end === undefined) return "";
+
+    return this.source.slice(node.start, node.end);
+  }
+  getExDrawElements() {
+    return _flattenDeep([
+      this.blocks.map((block) => block.get()),
+      this.sequence.map((link) => link.get()),
+      this.showRefs ? this.links.map((link) => link.get()) : [],
+      this.showMutations ? this.mutations.map((mutation) => mutation.get()) : [],
+    ]);
+  }
+  getLayout() {
+    const layout = new Springy.Layout.ForceDirected(
+      this.graph,
+      400.0, // Spring stiffness
+      400.0, // Node repulsion
+      0.5 // Damping
+    );
+    const that = this;
+    this.renderer = new Springy.Renderer(
+      layout,
+      function clear() {
+        // code to clear screen
+        console.log("clear");
+      },
+      function drawEdge(edge, p1, p2) {
+        // draw an edge
+        console.log(edge, p1, p2);
+      },
+      function drawNode(node, p) {
+        // draw a node
+        console.log(node, p);
+      },
+      function onRenderStop() {
+        // code to run when the layout has stopped
+        console.log("stop");
+        const nodes = Object.values(this.nodePoints).map((node) => [
+          node.p.x * 10,
+          node.p.y * 10,
+        ]);
+        console.log(nodes);
+      }
+    );
+    this.renderer.start();
+  }
+
+  generate() {
+    return generate({
+      type: "Program",
+      end: 444,
+      sourceType: "script",
+      start: 0,
+      body: this.blocks.map(block => block.getNode()),
+    }, {
+      comments: true
+    })
+  }
+
+  /*
+  ** 2. public set
+  */
   setPositions() {
     let first = this.blocks[0];
     let index = 0;
@@ -180,70 +252,5 @@ export class BlockManager {
     a.link(link);
     b.link(link);
     this.links.push(link);
-  }
-  getBlockById(id) {
-    return this.blocks.find(block => block.id() === id);
-  }
-  getSource() {
-    return this.source;
-  }
-  getCode(node) {
-    if (node.start === undefined && node.end === undefined) return "";
-
-    return this.source.slice(node.start, node.end);
-  }
-  getExDrawElements() {
-    return _flattenDeep([
-      this.blocks.map((block) => block.get()),
-      this.sequence.map((link) => link.get()),
-      this.showRefs ? this.links.map((link) => link.get()) : [],
-      this.showMutations ? this.mutations.map((mutation) => mutation.get()) : [],
-    ]);
-  }
-  getLayout() {
-    const layout = new Springy.Layout.ForceDirected(
-      this.graph,
-      400.0, // Spring stiffness
-      400.0, // Node repulsion
-      0.5 // Damping
-    );
-    const that = this;
-    this.renderer = new Springy.Renderer(
-      layout,
-      function clear() {
-        // code to clear screen
-        console.log("clear");
-      },
-      function drawEdge(edge, p1, p2) {
-        // draw an edge
-        console.log(edge, p1, p2);
-      },
-      function drawNode(node, p) {
-        // draw a node
-        console.log(node, p);
-      },
-      function onRenderStop() {
-        // code to run when the layout has stopped
-        console.log("stop");
-        const nodes = Object.values(this.nodePoints).map((node) => [
-          node.p.x * 10,
-          node.p.y * 10,
-        ]);
-        console.log(nodes);
-      }
-    );
-    this.renderer.start();
-  }
-
-  generate() {
-    return generate({
-      type: "Program",
-      end: 444,
-      sourceType: "script",
-      start: 0,
-      body: this.blocks.map(block => block.getNode()),
-    }, {
-      comments: true
-    })
   }
 }

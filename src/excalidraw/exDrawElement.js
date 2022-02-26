@@ -1,4 +1,3 @@
-// import { times } from "lodash";
 import _uniqueId from "lodash/uniqueId";
 
 const BLOCK_WIDTH = 140;
@@ -31,23 +30,10 @@ export class ExDrawElement {
 
     if (group) this.joinGroup(group);
   }
-  setPosition(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  setSize(width, height) {
-    this.width = width;
-    this.height = height;
-  }
-  getPosition() {
-    return [this.x, this.y];
-  }
-  getSize() {
-    return [this.width, this.height];
-  }
-  joinGroup(groupId) {
-    this.groupId = groupId;
-  }
+
+  /*
+  ** public get
+  */
   base() {
     return {
       ...(this.groupId ? { groupIds: [this.groupId] } : { groupIds: [] }),
@@ -59,4 +45,31 @@ export class ExDrawElement {
   get() {
     return Object.assign({}, this, this.base());
   }
+
+  /*
+  ** UI get
+  */
+  getPosition() {
+    return [this.x, this.y];
+  }
+  getSize() {
+    return [this.width, this.height];
+  }
+
+  /*
+  ** public set
+  */
+  setPosition(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  setSize(width, height) {
+    this.width = width;
+    this.height = height;
+  }
+
+  joinGroup(groupId) {
+    this.groupId = groupId;
+  }
+
 }
