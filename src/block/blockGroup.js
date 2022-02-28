@@ -102,10 +102,12 @@ export class BlockGroup {
     return []
   }
   getEditData() {
-    if (this.name === "VariableDeclaration") {
-      return this.editData;
-    }
-    return null;
+    return this.editData.map(edit => Object.assign(
+      {},
+      edit,
+      { id: this.getGroupId() }
+      )
+    );
   }
 
   /*

@@ -127,8 +127,8 @@ const App = () => {
           // onChange: (elements, state) =>
             // console.log("Elements :", elements, "State : ", state),
           onSelect: (elements, groupIds) => {
-            // console.log("Elements :", elements, "GroupIds : ", groupIds);
-            const block = manager.getBlockById(groupIds[0]);
+            const block = manager.getBlockById(groupIds);
+            // console.log("Elements :", elements, "GroupIds : ", groupIds, block);
             if (block && block.getEditData()) {
               setEdits(block.getEditData());
             } else {
@@ -220,10 +220,10 @@ const App = () => {
         React.createElement(
           "div",
           { className: "field" },
-          edits.map(edit => {
+          edits.map((edit, index) => {
             return React.createElement(
               "div",
-              { key: edit.name },
+              { key: edit.id + edit.name + index },
               React.createElement(
                 "label",
                 {},

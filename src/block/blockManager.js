@@ -9,6 +9,7 @@ import { BlockFactory } from "./blockFactory";
 export class BlockManager {
   constructor(statements, source) {
     this.blocks = [];
+    this.blockIndex = {};
     this.links = [];
     this.sequence = [];
     this.refs = {};
@@ -44,6 +45,7 @@ export class BlockManager {
     this.linkSequence();
     this.linkReferences();
     this.linkMutations();
+    this.ensureIndex();
 
     // this.getLayout();
   }
@@ -51,8 +53,9 @@ export class BlockManager {
   /*
   ** 1. public get
   */
-  getBlockById(id) {
-    return this.blocks.find(block => block.id() === id);
+  getBlockById(ids) {
+    const lastId = ids.pop();
+    return this.blockIndex[lastId];
   }
   getSource() {
     return this.source;
@@ -252,5 +255,11 @@ export class BlockManager {
     a.link(link);
     b.link(link);
     this.links.push(link);
+  }
+  ensureIndex() {
+    this.blocks.forEach((block, index) => {
+      this.blockIndex[block.groupId] = block;
+      block.setIndex(this.blockIndex);
+    });
   }
 }

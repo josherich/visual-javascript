@@ -1,5 +1,67 @@
 import { parse } from "@babel/parser";
 
+const selfSource = `import { ExDrawBlock } from "../excalidraw/exDrawBlock";
+import { ExDrawArrow } from "../excalidraw/exDrawArrow";
+import { BlockGroup } from "./blockGroup";
+
+import {
+  parseInputs,
+  parseOutputs,
+  parseMutation,
+  parseControlFlows,
+  parseSourceCode,
+  parseEditData,
+  parseTitle,
+  parseContent,
+  setNode,
+} from "./blockParser";
+
+/* Block is the AST representation that manages UI elements */
+export class Block {
+  constructor({ node, keysInScope, getCode, groupId } = {}) {
+    this.name = node.type;
+    this.keysInScope = keysInScope;
+    this.getCode = getCode;
+    this.groupId = groupId;
+    this.node = node;
+
+    this.inputs = parseInputs(node); // var deps
+    this.outputs = parseOutputs(node, keysInScope); // if var declaration
+    this.mutation = parseMutation(node);
+    this.controlFlows = parseControlFlows(node); // control flow statement
+    this.sourceCode = parseSourceCode(node, getCode);
+    this.editData = parseEditData(node);
+
+    this.title = parseTitle(node, getCode);
+    this.content = parseContent(node, getCode);
+
+    this.prev = null;
+    this.next = null;
+    this.position = null;
+    this.exBlock = null;
+    this.controlFlowBlocks = null;
+    this.layoutNode = null;
+    this.links = [];
+
+    this.drawBlock();
+  }
+
+  drawBlock() {
+    this.exBlock = new ExDrawBlock({
+      title: this.title,
+      inputs: this.inputs,
+      outputs: this.outputs,
+      content: this.content,
+      controlFlows: Object.keys(this.controlFlows),
+      groupId: this.groupId,
+      isControlFlow: this.isControlFlowBlock(),
+    });
+
+    this.drawControlFlow();
+    this.drawClassMethods();
+  }
+}`;
+
 const exampleSource = `
 let z = { x: 0, y: 0 }, s;
 var b = 5;
@@ -72,5 +134,5 @@ function lomutoPartition(pivot, left, right) {
   return p;
 }
 `
-export const exampleAST = parse(mandelbrotSource, { ecmaVersion: 2020 });
-export const source = mandelbrotSource;
+export const exampleAST = parse(selfSource, { ecmaVersion: 2020, sourceType: "module" });
+export const source = selfSource;

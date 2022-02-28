@@ -36,6 +36,91 @@ const identifierNameMap = {
   DoWhileStatement: "do-while",
   BreakStatement: "break",
   ContinueStatement: "continue",
+  ImportDeclaration: "Import",
+  ExportNamedDeclaration: "Export",
+  ClassDeclaration: "Class",
+};
+
+export const parseTitle = (node, getCode) => {
+  let prefix = '';
+  if (node.type === 'ExportNamedDeclaration') {
+    prefix = 'export ';
+  }
+
+  if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+    node = node.declaration;
+  }
+
+  let title = node.type;
+  const codeInTitle = parseSubtitle(node, getCode);
+
+  title = identifierNameMap[node.type];
+  if (node.type === "ExpressionStatement") {
+    const expressionStatementMap = {
+      AssignmentExpression: "Assignment",
+      CallExpression: "Call",
+    };
+    title = expressionStatementMap[node.expression.type];
+  }
+  if (node.type === "ReturnStatement") {
+    title = "Return";
+  }
+
+  return prefix + title + (codeInTitle ? ` (${codeInTitle})` : "");
+}
+
+export const parseContent = (node, getCode) => {
+  return astHandler(node, {
+    'ImportDeclaration': (node) => {
+      return node.specifiers.map(specifier => {
+        return `${specifier.imported.name}`;
+      }).join('\n');
+    },
+    'ExportNamedDeclaration': (node) => {
+      return parseContent(node.declaration, getCode);
+    },
+    'ClassDeclaration': (node) => {
+      return node.id.name;
+    },
+    'ExpressionStatement': {
+      'expression': {
+        // 'AssignmentExpression': (node) => {
+        //   let expression = getCode(node);
+        //   return formatCode(expression).slice(0, 18);
+        // }
+      }
+    }
+  })
+}
+
+export const parseSubtitle = (node, getCode) => {
+  return astHandler(node, {
+    'ImportDeclaration': (node) => {
+      return getCode(node.source);
+    },
+    'IfStatement': (node) => {
+      return getCode(node.test);
+    },
+    'WhileStatement': (node) => {
+      return getCode(node.test);
+    },
+    'DoWhileStatement': (node) => {
+      return getCode(node.test);
+    },
+    'ReturnStatement': (node) => {
+      return getCode(node.argument);
+    },
+    'ExpressionStatement': {
+      'expression': {
+        'AssignmentExpression': (node) => {
+          return getCode(node.left)
+        },
+        'CallExpression': (node) => {
+          return node.callee.name;
+        }
+      }
+    }
+  });
 };
 
 const parseBlockStatement = (blockStatement) => {
@@ -60,6 +145,7 @@ const parseExpressionInputs = (expression) => {
       return closureInputs.concat(argumentInputs);
     case "AssignmentExpression":
       return parseIdentifiers(expression.right);
+      return [];
     default:
       return [];
   }
@@ -221,8 +307,91 @@ export const parseSourceCode = (node, getCode) => {
   }
 };
 
+const parseLeftValue = (node) => {
+  return astHandler(node, {
+    'MemberExpression': (node) => {
+      return node.object.type === 'ThisExpression' ? {
+        name: 'left',
+        value: 'this' + '.' + node.property.name,
+        path: 'property.name'
+      } : {
+        name: 'left',
+        value: node.object.name + '.' + node.property.name,
+        path: 'object.name'
+      }
+    },
+    'Identifier': (node) => {
+      return {
+        name: 'left',
+        value: node.name,
+        path: 'name'
+      }
+    }
+  })
+}
+
+const parseRightValue = (node) => {
+  return astHandler(node, {
+    'Identifier': (node) => {
+      return {
+        name: 'right',
+        value: node.name,
+        path: 'name'
+      }
+    },
+    'NullLiteral': (node) => {
+      return {
+        name: 'right',
+        value: 'null',
+        path: 'type'
+      };
+    },
+    'ArrayExpression': (node) => {
+      return {
+        name: 'right',
+        value: node.elements.map(e => e.value).join(','),
+        path: 'elements'
+      }
+    },
+    'MemberExpression': (node) => {
+      return {
+        name: 'right',
+        value: node.object.name + '.' + node.property.name,
+        path: 'object.name'
+      }
+    },
+    'CallExpression': (node) => {
+      return {
+        name: 'right',
+        value: node.callee.name,
+        path: 'callee.name',
+      }
+    }
+  })
+}
+
 export const parseEditData = (node) => {
   return astHandler(node, {
+    'ImportDeclaration': (node) => {
+      return node.specifiers.map((spec, index) => {
+        return {
+          name: 'import',
+          value: spec.imported.name,
+          path: `specifiers.${index}.imported.name`,
+        }
+      }).concat([{
+        name: 'source',
+        value: node.source.value,
+        path: 'source.value',
+      }]);
+    },
+    'ExpressionStatement': {
+      'expression': {
+        'AssignmentExpression': (node) => {
+          return [parseLeftValue(node.left), parseRightValue(node.right)];
+        }
+      }
+    },
     'VariableDeclaration': (node) => {
       return node.declarations.map((dec, index) => {
         if (dec.init && dec.init.type === "NumericLiteral") {
@@ -236,62 +405,8 @@ export const parseEditData = (node) => {
         }
       }).filter(e => e);
     },
-  })
+  }) || [];
 }
-
-export const parseTitle = (node, getCode) => {
-  let title = node.type;
-  const codeInTitle = parseSubtitle(node, getCode);
-
-  title = identifierNameMap[node.type];
-  if (node.type === "ExpressionStatement") {
-    const expressionStatementMap = {
-      AssignmentExpression: "Assignment",
-      CallExpression: "Call",
-    };
-    title = expressionStatementMap[node.expression.type];
-  }
-  if (node.type === "ReturnStatement") {
-    title = "Return";
-  }
-
-  return title + (codeInTitle ? ` (${codeInTitle.slice(0, 10)})` : "");
-}
-
-export const parseContent = (node, getCode) => {
-  if (node.type === 'ExpressionStatement' && node.expression?.type === 'AssignmentExpression') {
-    let expression = getCode(node);
-    return formatCode(expression).slice(0, 18);
-  }
-  return '';
-}
-
-export const parseSubtitle = (node, getCode) => {
-  return astHandler(node, {
-    'IfStatement': (node) => {
-      return getCode(node.test);
-    },
-    'WhileStatement': (node) => {
-      return getCode(node.test);
-    },
-    'DoWhileStatement': (node) => {
-      return getCode(node.test);
-    },
-    'ReturnStatement': (node) => {
-      return getCode(node.argument);
-    },
-    'ExpressionStatement': {
-      'expression': {
-        'AssignmentExpression': (node) => {
-          return getCode(node)
-        },
-        'CallExpression': (node) => {
-          return node.callee.name;
-        }
-      }
-    }
-  });
-};
 
 export const formatCode = (code) => {
   return code.replace(/\n/g, " ").replace(/\s+/g, " ");
@@ -311,7 +426,9 @@ export const setNode = (node, path, value) => {
   return node;
 }
 
-/* private */
+/*
+** ========== private ==========
+*/
 
 const excludeBuiltin = (keywordSet) => {
   ['Math', 'Infinity', 'NaN', 'undefined', 'null', 'true', 'false'].forEach(keyword => {

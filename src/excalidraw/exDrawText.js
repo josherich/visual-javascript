@@ -13,8 +13,12 @@ export class ExDrawText extends ExDrawElement {
     this.textAlign = "left";
     this.fontSize = 12;
     this.fontFamily = 3;
-    this.width = 6.5 * this.text.length + 5;
-    this.height = this.baseline;
+
+    const lines = this.text.split("\n");
+    const maxWidth = Math.max(...lines.map((line) => line.length));
+    this.width = 6.5 * maxWidth + 15;
+    this.height = this.baseline * this.text.split("\n").length;
+
     this.verticalAlign = "top";
     this.setPosition(x, y);
   }

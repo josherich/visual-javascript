@@ -15,6 +15,7 @@ export class ExDrawLabels {
     position: [x, y],
     offset: [w, h] = [110, 100],
   } = {}) {
+    this.names = names;
     this.direction = direction;
     this.offset = [w, h];
     this.nodes = names.map((title, index) => {
@@ -46,12 +47,24 @@ export class ExDrawLabels {
     }
     return this.direction === "left" ? pair[0] : pair[1];
   }
+  getSize() {
+    return [
+      this.nodes.length === 0
+        ? 0
+        : Math.max(
+            ...this.nodes.map(
+              (node) => node[1].getSize()[0] + node[0].getSize()[0] + baseX * 3
+            )
+          ),
+      this.nodes.length * (BASELINEHEIGHT + PADDING),
+    ];
+  }
 
   /*
   ** ========== public set ==========
   */
-  setPosition(x, y) {
-    let [w, h] = this.offset;
+  setPosition(x, y, offset) {
+    let [w, h] = offset || this.offset;
     this.nodes.forEach(([circle, text], index) => {
       const labelX = x + baseX;
       const labelY = y + baseY + index * (BASELINEHEIGHT + PADDING);

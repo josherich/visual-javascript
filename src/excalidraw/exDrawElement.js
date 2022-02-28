@@ -35,8 +35,9 @@ export class ExDrawElement {
   ** public get
   */
   base() {
+    const groupIds = Array.isArray(this.groupId) ? this.groupId : [this.groupId].filter(e => e);
     return {
-      ...(this.groupId ? { groupIds: [this.groupId] } : { groupIds: [] }),
+      groupIds,
       version: 1,
       verisonNonce: 1,
       isDeleted: false,

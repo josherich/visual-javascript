@@ -1,6 +1,7 @@
 import { ExDrawBlock } from "../excalidraw/exDrawBlock";
 import { ExDrawArrow } from "../excalidraw/exDrawArrow";
 import { BlockGroup } from "./blockGroup";
+import { FunctionBlock } from "./functionBlock";
 
 import {
   parseInputs,
@@ -33,11 +34,13 @@ export class Block {
     this.title = parseTitle(node, getCode);
     this.content = parseContent(node, getCode);
 
+    this.mini = false;
     this.prev = null;
     this.next = null;
     this.position = null;
     this.exBlock = null;
-    this.controlFlowBlocks = null;
+    this.controlFlowBlocks = [];
+    this.classMethodBlocks = [];
     this.layoutNode = null;
     this.links = [];
 
@@ -55,6 +58,11 @@ export class Block {
       isControlFlow: this.isControlFlowBlock(),
     });
 
+    this.drawControlFlow();
+    this.drawClassMethods();
+  }
+
+  drawControlFlow() {
     this.controlFlowBlocks = Object.entries(this.controlFlows)
       .map(([name, statements]) => {
         if (name === "Exit") {
@@ -71,6 +79,21 @@ export class Block {
     this.linkControlFlow();
   }
 
+  drawClassMethods() {
+    if (!(this.node.type === "ClassDeclaration" || this.node.declaration?.type === "ClassDeclaration")) return;
+
+    this.classMethodBlocks = this.node.declaration.body.body.map(method => {
+      const methodName = method.kind === "constructor" ? "constructor" : method.key.name;
+      return new FunctionBlock({
+        node: method,
+        keysInScope: this.keysInScope,
+        getCode: this.getCode,
+        signature: [methodName, method.params.map(p => p.name)],
+        groupId: this.groupId,
+      });
+    });
+  }
+
   /*
   ** 1. public get
   */
@@ -84,8 +107,12 @@ export class Block {
     return [
       this.exBlock.get(),
       ...this.controlFlowBlocks.map((block) => block.get()),
+      ...this.classMethodBlocks.map((block) => block.get()),
       ...this.links.map((link) => link.get()),
     ];
+  }
+  findBlockById(id) {
+    return this.classMethodBlocks.find(block => block.id() === id);
   }
   getGroupId() {
     return this.exBlock.groupId;
@@ -104,10 +131,12 @@ export class Block {
     return [this.mutation];
   }
   getEditData() {
-    if (this.name === "VariableDeclaration") {
-      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
-    }
-    return null;
+    return this.editData.map(edit => Object.assign(
+      {},
+      edit,
+      { id: this.getGroupId() }
+      )
+    );
   }
   getBreakReturnBlocks() {
     const jumpBlocks = [];
@@ -161,6 +190,11 @@ export class Block {
   getSize() {
     return this.exBlock.getSize();
   }
+  getEndPosition() {
+    const [x, y] = this.getPosition();
+    const [width, height] = this.getSize();
+    return [x + width, y + height];
+  }
 
   /*
   ** 3. Boolean getter
@@ -179,13 +213,21 @@ export class Block {
     this.layoutNode = node;
   }
   setPosition(x, y) {
-    this.exBlock.setPosition(x, y);
     const [w, h] = this.getSize();
+    this.exBlock.setPosition(x, y);
     this.controlFlowBlocks.forEach((block, index) => {
       if (index === 0) {
         block.setPosition(x + w + 40, y - 0);
       } else {
         block.setPosition(x + w + 40, y - 0 + this.controlFlowBlocks[index - 1].getSize()[1] + 40);
+      }
+    });
+    this.classMethodBlocks.forEach((block, index) => {
+      if (index === 0) {
+        block.setPosition(x, y + this.exBlock.getSize()[1] + 20);
+      } else {
+        const prev = this.classMethodBlocks[index - 1];
+        block.setPosition(x, prev.getEndPosition()[1] + 20);
       }
     });
     this.links.forEach((link, index) => {
@@ -194,6 +236,12 @@ export class Block {
         ...this.getControlFlowOutPosition(index),
         ...block.getControlFlowInPosition()
       );
+    });
+  }
+  setIndex(index) {
+    this.classMethodBlocks.forEach(block => {
+      index[block.groupId[block.groupId.length - 1]] = block;
+      block.setIndex(index);
     });
   }
   followPosition(block, transformer) {

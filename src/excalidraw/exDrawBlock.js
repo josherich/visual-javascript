@@ -11,7 +11,7 @@ export class ExDrawBlock {
     inputs = [],
     outputs = [],
     controlFlows = [],
-    groupId = _uniqueId("groupId"),
+    groupId = _uniqueId("ui-block-"),
     isGroup = false,
     isControlFlow = false,
     size: [w, h] = [140],
@@ -53,6 +53,7 @@ export class ExDrawBlock {
         position: [this.x + 10, this.y + 18],
       });
     }
+
     if (controlFlows.length > 0) {
       this.controlFlows = new ExDrawLabels({
         names: controlFlows,
@@ -62,6 +63,7 @@ export class ExDrawBlock {
         offset: [w, h],
       });
     }
+
     if (isControlFlow) {
       this.frame.setSize(140, 60);
     } else {
@@ -129,19 +131,21 @@ export class ExDrawBlock {
   */
   setSize(width, height) {
     const bottomPadding = 10;
-    const AdjustedHeight =
-      height ||
+    const adjustedWidth = Math.max(
+      this.inputs.getSize()[0] + width + this.outputs.getSize()[0],
+      this.title.getSize()[0] + 20
+    );
+    const adjustedHeight =
       Math.max(
         this.inputs.getSize()[1],
         this.outputs.getSize()[1],
-        this.controlFlows ? this.controlFlows.getSize()[1] : 0
+        this.controlFlows ? this.controlFlows.getSize()[1] : 0,
+        this.content ? this.content.getSize()[1] : 0,
+        height || 0
       ) +
-        this.title.getSize()[1] +
-        bottomPadding +
-        (this.content
-        ? this.content.getSize()[1]
-        : 0);
-    this.frame.setSize(width, AdjustedHeight);
+      this.title.getSize()[1] +
+      bottomPadding;
+    this.frame.setSize(adjustedWidth, adjustedHeight);
   }
   setPosition(x, y) {
     const titleOffsetX = 5;
@@ -159,7 +163,7 @@ export class ExDrawBlock {
     this.frame.setPosition(x, y);
     this.title.setPosition(x + 5, y);
     this.inputs.setPosition(x, y);
-    this.outputs.setPosition(x, y);
+    this.outputs.setPosition(x, y, this.getSize());
 
     if (this.content) this.content.setPosition(x + 5, y + 26);
     if (this.controlFlows) this.controlFlows.setPosition(x, y);

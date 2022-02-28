@@ -6,7 +6,8 @@ import { Block } from "./block";
 import { ExDrawBlock } from "../excalidraw/exDrawBlock";
 
 const BLOCK_GROUP_WIDTH = 340;
-const BLOCK_GROUP_PADDING = 40;
+const BLOCK_GROUP_PADDING_BOTTOM = 20;
+const BLOCK_GROUP_PADDING_RIGHT = 20;
 const BLOCK_HEIGHT = 100;
 
 import {
@@ -16,7 +17,7 @@ import {
 } from "./blockParser";
 
 export class FunctionBlock {
-  constructor({node, signature = [], keysInScope, getCode, unfolded = false }={}) {
+  constructor({node, signature = [], keysInScope, getCode, unfolded = false, groupId }={}) {
     this.node = node;
     this.nodes = node.body.body;
     this.signature = signature;
@@ -24,7 +25,9 @@ export class FunctionBlock {
     this.getCode = getCode;
     this.unfolded = false;
 
-    this.groupId = _uniqueId("functionGroup");
+    this.groupId = [_uniqueId("function-block-")];
+    if (groupId) this.groupId.unshift(groupId);
+
     this.groupName = this.getGroupTitle();
 
     this.blocks = this.#parseBlocks(this.nodes, keysInScope);
@@ -45,7 +48,10 @@ export class FunctionBlock {
       outputs: this.unfolded ? this.outputs : _flattenDeep(this.outputs),
       groupId: this.groupId,
       isGroup: true,
-      size: [BLOCK_GROUP_WIDTH, this.getContentSize()[1] + BLOCK_GROUP_PADDING]
+      size: [
+        this.getContentSize()[0] + BLOCK_GROUP_PADDING_RIGHT,
+        this.getContentSize()[1] + BLOCK_GROUP_PADDING_BOTTOM
+      ]
     });
     // this.backgroundBlock.setSize(BLOCK_GROUP_WIDTH, BLOCK_GROUP_PADDING * 2 + this.blocks.length * BLOCK_HEIGHT);
   }
@@ -100,10 +106,12 @@ export class FunctionBlock {
     return this.groupName;
   }
   getEditData() {
-    if (this.name === "VariableDeclaration") {
-      return this.editData.map(edit => Object.assign({}, edit, {id: this.getGroupId()}));
-    }
-    return null;
+    return this.editData.map(edit => Object.assign(
+      {},
+      edit,
+      { id: this.getGroupId() }
+      )
+    );
   }
 
   /*
@@ -133,11 +141,19 @@ export class FunctionBlock {
   getSize() {
     return this.backgroundBlock.getSize();
   }
+  getEndPosition() {
+    const [x, y] = this.backgroundBlock.getPosition();
+    const [w, h] = this.backgroundBlock.getSize();
+    return [x + w, y + h];
+  }
 
   getContentSize() {
     return this.blocks.reduce((acc, block) => {
       const [w, h] = block.getSize();
-      return [Math.max(acc[0], w), acc[1] + h + 10 * 2, ];
+      return [
+        Math.max(acc[0], w),
+        acc[1] + h + 10,
+      ];
     }, [0, 0]);
   }
   getBreakReturnBlocks() {
@@ -156,15 +172,19 @@ export class FunctionBlock {
   }
   setPosition(x, y) {
     this.backgroundBlock.setPosition(x, y);
-    const offsetX = this.backgroundBlock.getContentOffset()[0];
+    const [offsetX, offsetY] = this.backgroundBlock.getContentOffset();
     this.blocks.forEach((block, index) => {
       if (index === 0) {
-        block.setPosition(x + offsetX, y + 40);
+        block.setPosition(x + offsetX, y + offsetY + 5);
       } else {
-        const [_x, _y] = this.blocks[index - 1].getPosition();
-        const [w, h] = this.blocks[index - 1].getSize();
-        block.setPosition(x + offsetX, _y + 10 + h);
+        const [_x, _y] = this.blocks[index - 1].getEndPosition();
+        block.setPosition(x + offsetX, _y + 10);
       }
+    });
+  }
+  setIndex(index) {
+    this.blocks.forEach(block => {
+      index[block.groupId[block.groupId.length - 1]] = block;
     });
   }
   followPosition(block, transformer) {
@@ -179,17 +199,23 @@ export class FunctionBlock {
   ** private
   */
   #parseBlocks(nodes, keysInScope) {
-    return nodes.map((node) => {
-      return new Block({node, keysInScope, getCode: this.getCode, groupId: this.groupId});
+    return nodes.map((node, index) => {
+      const groupId = this.groupId.concat([this.groupId + '_' + index]);
+      return new Block({node, keysInScope, getCode: this.getCode, groupId});
     });
   }
   #parseInputs(nodes) {
-    return nodes.map((node) => {
-      return parseInputs(node);
+    const inputs = new Set();
+    nodes.map((node) => {
+      const subInputs = parseInputs(node);
+      subInputs.forEach(input => inputs.add(input));
     });
+    return Array.from(inputs);
   }
   #parseOutputs(nodes, keysInScope) {
     let [fname, ...args] = this.signature;
+    if (fname === 'constructor') return [];
+
     return [fname];
     // return nodes.map((node) => {
     //   return parseOutputs(node, keysInScope);
