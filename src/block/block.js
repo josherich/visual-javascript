@@ -29,7 +29,7 @@ export class Block {
     this.mutation = parseMutation(node);
     this.controlFlows = parseControlFlows(node); // control flow statement
     this.sourceCode = parseSourceCode(node, getCode);
-    this.editData = parseEditData(node);
+    this.editData = parseEditData(node, getCode);
 
     this.title = parseTitle(node, getCode);
     this.content = parseContent(node, getCode);

@@ -115,8 +115,15 @@ export const parseSubtitle = (node, getCode) => {
         'AssignmentExpression': (node) => {
           return getCode(node.left)
         },
-        'CallExpression': (node) => {
-          return node.callee.name;
+        'CallExpression': {
+          'callee': {
+            'Identifier': (node) => {
+              return node.name;
+            },
+            'MemberExpression': (node) => {
+              return (node.object.type === 'ThisExpression' ? 'this' : node.object.name) + '.' + node.property.name;
+            }
+          }
         }
       }
     }
@@ -366,11 +373,18 @@ const parseRightValue = (node) => {
         value: node.callee.name,
         path: 'callee.name',
       }
+    },
+    'NewExpression': (node) => {
+      return {
+        name: 'right',
+        value: 'new ' + node.callee.name,
+        path: 'callee.name',
+      }
     }
   })
 }
 
-export const parseEditData = (node) => {
+export const parseEditData = (node, getCode) => {
   return astHandler(node, {
     'ImportDeclaration': (node) => {
       return node.specifiers.map((spec, index) => {
@@ -389,6 +403,17 @@ export const parseEditData = (node) => {
       'expression': {
         'AssignmentExpression': (node) => {
           return [parseLeftValue(node.left), parseRightValue(node.right)];
+        },
+        'CallExpression': {
+          'callee': {
+            'MemberExpression': (node) => {
+              return [{
+                name: 'function call',
+                value: getCode(node),
+                path: 'expression.callee'
+              }];
+            }
+          }
         }
       }
     },

@@ -33,7 +33,7 @@ export class FunctionBlock {
     this.blocks = this.#parseBlocks(this.nodes, keysInScope);
     this.inputs = this.#parseInputs(this.nodes, keysInScope);
     this.outputs = this.#parseOutputs(this.nodes, keysInScope);
-    this.editData = parseEditData(this.nodes);
+    this.editData = parseEditData(this.nodes, getCode);
     this.mutations = this.#parseMutations(this.nodes, keysInScope);
     this.controlFlowBlocks = [];
 

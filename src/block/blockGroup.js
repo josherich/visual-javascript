@@ -30,7 +30,7 @@ export class BlockGroup {
     this.blocks = this.parseBlocks(nodes, keysInScope);
     this.inputs = this.parseInputs(nodes, keysInScope);
     this.outputs = this.parseOutputs(nodes, keysInScope);
-    this.editData = parseEditData(nodes);
+    this.editData = parseEditData(nodes, getCode);
     this.mutations = this.parseMutations(nodes, keysInScope);
     this.controlFlowBlocks = [];
 
