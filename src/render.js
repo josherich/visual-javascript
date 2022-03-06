@@ -17,9 +17,9 @@ const start = () => {
   manager = new BlockManager(statements, source);
 };
 
-export const reload = (source) => {
-  const ast = parse(source, { ecmaVersion: 2020 });
-  manager = new BlockManager(ast['program']["body"], source);
+export const reload = (source, textMode = false) => {
+  const ast = parse(source, { ecmaVersion: 2020, sourceType: "module" });
+  manager = new BlockManager(ast['program']["body"], source, textMode);
 }
 
 export const codeGen = () => {

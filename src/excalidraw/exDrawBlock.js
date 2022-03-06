@@ -15,15 +15,20 @@ export class ExDrawBlock {
     isGroup = false,
     isControlFlow = false,
     size: [w, h] = [140],
+    textMode = false,
   } = {}) {
+    this.textMode = textMode;
+
     this.title = title;
     this.groupId = groupId;
+    this.isGroup = isGroup;
     this.x = 0;
     this.y = 0;
     this.frame = new ExDrawElement({
       type: "rectangle",
       group: this.groupId,
       position: [this.x, this.y],
+      borderColor: this.textMode ? "#eeeeee" : "#000000",
       backgroundColor: isGroup ? "#ced4da" : "transparent",
     });
 
@@ -75,14 +80,25 @@ export class ExDrawBlock {
   ** ========== public get ==========
   */
   get() {
-    return [
-      this.frame.get(),
-      this.title.get(),
-      this.content ? this.content.get() : [],
-      ...this.inputs.get(),
-      ...this.outputs.get(),
-      ...(this.controlFlows ? this.controlFlows.get() : []),
-    ];
+    if (this.textMode && !this.isGroup) {
+      return [
+        this.frame.get(),
+        this.content.get()
+      ]
+    } else if (this.textMode && this.isGroup) {
+      return [
+        this.frame.get(),
+      ];
+    } else {
+      return [
+        this.frame.get(),
+        this.title.get(),
+        this.content ? this.content.get() : [],
+        ...this.inputs.get(),
+        ...this.outputs.get(),
+        ...(this.controlFlows ? this.controlFlows.get() : []),
+      ];
+    }
   }
   id() {
     return this.groupId;
@@ -130,6 +146,10 @@ export class ExDrawBlock {
   ** ========== public set ==========
   */
   setSize(width, height) {
+    if (this.textMode && !this.isGroup) {
+      this.frame.setSize(...this.content.getSize());
+      return;
+    }
     const bottomPadding = 10;
     const adjustedWidth = Math.max(
       this.inputs.getSize()[0] + width + this.outputs.getSize()[0],
@@ -148,6 +168,11 @@ export class ExDrawBlock {
     this.frame.setSize(adjustedWidth, adjustedHeight);
   }
   setPosition(x, y) {
+    if (this.textMode && !this.isGroup) {
+      this.frame.setPosition(x, y);
+      this.content.setPosition(x + 1, y - 3);
+      return;
+    }
     const titleOffsetX = 5;
     const titleOffsetY = 0;
 

@@ -4,7 +4,7 @@ import { Block } from "./block";
 import _uniqueId from "lodash/uniqueId";
 
 // three types of blocks: function, single statement, multi statements
-export const BlockFactory = ({ node, keysInScope, getCode }={}) => {
+export const BlockFactory = ({ node, keysInScope, getCode, textMode = false }={}) => {
   if (node.type === "FunctionDeclaration") {
     return new FunctionBlock({
       node,
@@ -12,6 +12,7 @@ export const BlockFactory = ({ node, keysInScope, getCode }={}) => {
       getCode,
       signature: [node.id.name, node.params.map(p => p.name)],
       groupId: _uniqueId('function-block-'),
+      textMode,
     });
   } else if (Array.isArray(node)) {
     return new BlockGroup({
@@ -19,6 +20,7 @@ export const BlockFactory = ({ node, keysInScope, getCode }={}) => {
       keysInScope,
       getCode,
       groupId: _uniqueId('block-group-'),
+      textMode,
     });
   } else {
     return new Block({
@@ -26,6 +28,7 @@ export const BlockFactory = ({ node, keysInScope, getCode }={}) => {
       keysInScope,
       getCode,
       groupId: _uniqueId('block-'),
+      textMode,
     })
   }
 }

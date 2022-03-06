@@ -17,7 +17,9 @@ import {
 } from "./blockParser";
 
 export class BlockGroup {
-  constructor({ nodes, keysInScope, getCode, unfolded = false }={}) {
+  constructor({ nodes, keysInScope, getCode, unfolded = false, textMode }={}) {
+    this.textMode = textMode;
+
     this.nodes = nodes;
     this.keysInScope = keysInScope;
     this.getCode = getCode;
@@ -46,6 +48,7 @@ export class BlockGroup {
       groupId: this.groupId,
       isGroup: true,
       size: [BLOCK_GROUP_WIDTH, this.getContentSize()[1] + BLOCK_GROUP_PADDING],
+      textMode: this.textMode,
     });
     // this.backgroundBlock.setSize(BLOCK_GROUP_WIDTH, BLOCK_GROUP_PADDING * 2 + this.blocks.length * BLOCK_HEIGHT);
   }
@@ -183,7 +186,7 @@ export class BlockGroup {
   */
   parseBlocks(nodes, keysInScope) {
     return nodes.map((node) => {
-      return new Block({node, keysInScope, getCode: this.getCode, groupId: this.groupId});
+      return new Block({node, keysInScope, getCode: this.getCode, groupId: this.groupId, textMode: this.textMode});
     });
   }
   parseInputs(nodes) {

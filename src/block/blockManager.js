@@ -7,7 +7,7 @@ import { BlockFactory } from "./blockFactory";
 
 /* BlockManager scan blocks and update their relations and positions */
 export class BlockManager {
-  constructor(statements, source) {
+  constructor(statements, source, textMode) {
     this.blocks = [];
     this.blockIndex = {};
     this.links = [];
@@ -24,7 +24,12 @@ export class BlockManager {
 
     statements.forEach((statementNode) => {
       const keysInScope = Object.keys(this.refs);
-      const block = BlockFactory({node: statementNode, keysInScope, getCode: this.getCode.bind(this)});
+      const block = BlockFactory({
+        node: statementNode,
+        keysInScope,
+        getCode: this.getCode.bind(this),
+        textMode,
+      });
 
       const layoutNode = this.graph.newNode({ label: statementNode.type });
       block.setLayoutNode(layoutNode);

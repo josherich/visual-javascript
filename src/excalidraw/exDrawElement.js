@@ -8,6 +8,7 @@ export class ExDrawElement {
     style = "solid",
     group,
     backgroundColor = "transparent",
+    borderColor = "#000000",
   } = {}) {
     this.type = type;
     this.x = 0;
@@ -15,7 +16,7 @@ export class ExDrawElement {
     this.strokeWidth = 1;
     this.strokeStyle = style;
     this.fillStyle = "hachure";
-    this.strokeColor = "#000000";
+    this.strokeColor = borderColor;
     this.strokeSharpness = "sharp";
     this.backgroundColor = backgroundColor;
     this.roughness = 0;

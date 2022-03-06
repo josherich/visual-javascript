@@ -18,7 +18,8 @@ import {
 
 /* Block is the AST representation that manages UI elements */
 export class Block {
-  constructor({ node, keysInScope, getCode, groupId } = {}) {
+  constructor({ node, keysInScope, getCode, groupId, textMode } = {}) {
+    this.textMode = textMode;
     this.name = node.type;
     this.keysInScope = keysInScope;
     this.getCode = getCode;
@@ -34,6 +35,13 @@ export class Block {
 
     this.title = parseTitle(node, getCode);
     this.content = parseContent(node, getCode);
+    if (this.textMode) {
+      if (node.type === 'ExportNamedDeclaration') {
+        this.content = this.title;
+      } else {
+        this.content = getCode(node);
+      }
+    }
 
     this.mini = false;
     this.prev = null;
@@ -50,6 +58,7 @@ export class Block {
 
   drawBlock() {
     this.exBlock = new ExDrawBlock({
+      textMode: this.textMode,
       title: this.title,
       inputs: this.inputs,
       outputs: this.outputs,
@@ -89,8 +98,8 @@ export class Block {
         keysInScope: this.keysInScope,
         getCode: this.getCode,
         signature: parseFunctionSignature(method),
-        // signature: [methodName, method.params.map(p => p.name)],
         groupId: this.groupId,
+        textMode: this.textMode,
       });
     });
   }

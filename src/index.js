@@ -18,7 +18,7 @@ const App = () => {
   const [source, setSource] = React.useState(manager.getSource());
 
   const [viewModeEnabled, setViewModeEnabled] = React.useState(false);
-  const [zenModeEnabled, setZenModeEnabled] = React.useState(true);
+  const [textModeEnabled, setTextModeEnabled] = React.useState(false);
   const [gridModeEnabled, setGridModeEnabled] = React.useState(false);
   const sourceText = React.createRef();
 
@@ -47,9 +47,9 @@ const App = () => {
       }
     };
     if (sourceText.current) {
-      reload(sourceText.current.value);
+      reload(sourceText.current.value, textModeEnabled);
       sceneData.elements = manager.getExDrawElements();
-      excadlidrawRef.current.updateScene(sceneData);
+      excalidrawRef.current.updateScene(sceneData);
     }
   };
 
@@ -138,7 +138,7 @@ const App = () => {
           // onPointerUpdate: (payload) => console.log(payload),
           // onCollabButtonClick: () => window.alert("You clicked on collab button"),
           viewModeEnabled: viewModeEnabled,
-          zenModeEnabled: zenModeEnabled,
+          zenModeEnabled: true,
           gridModeEnabled: gridModeEnabled
         })
       )
@@ -198,10 +198,10 @@ const App = () => {
           null,
           React.createElement("input", {
             type: "checkbox",
-            checked: zenModeEnabled,
-            onChange: () => setZenModeEnabled(!zenModeEnabled)
+            checked: textModeEnabled,
+            onChange: () => setTextModeEnabled(!textModeEnabled)
           }),
-          "Zen mode"
+          "Text mode"
         ),
         React.createElement(
           "label",

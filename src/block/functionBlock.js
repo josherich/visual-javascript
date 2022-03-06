@@ -17,7 +17,9 @@ import {
 } from "./blockParser";
 
 export class FunctionBlock {
-  constructor({node, signature = [], keysInScope, getCode, unfolded = false, groupId }={}) {
+  constructor({node, signature = [], keysInScope, getCode, unfolded = false, groupId, textMode = false }={}) {
+    this.textMode = textMode;
+
     this.node = node;
     this.nodes = node.body.body;
     this.signature = signature;
@@ -51,7 +53,8 @@ export class FunctionBlock {
       size: [
         this.getContentSize()[0] + BLOCK_GROUP_PADDING_RIGHT,
         this.getContentSize()[1] + BLOCK_GROUP_PADDING_BOTTOM
-      ]
+      ],
+      textMode: this.textMode
     });
     // this.backgroundBlock.setSize(BLOCK_GROUP_WIDTH, BLOCK_GROUP_PADDING * 2 + this.blocks.length * BLOCK_HEIGHT);
   }
@@ -201,7 +204,7 @@ export class FunctionBlock {
   #parseBlocks(nodes, keysInScope) {
     return nodes.map((node, index) => {
       const groupId = this.groupId.concat([this.groupId + '_' + index]);
-      return new Block({node, keysInScope, getCode: this.getCode, groupId});
+      return new Block({node, keysInScope, getCode: this.getCode, groupId, textMode: this.textMode});
     });
   }
   #parseInputs(nodes) {
