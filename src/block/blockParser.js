@@ -244,6 +244,31 @@ export const parseMutation = (node) => {
   }
 };
 
+export const parseFunctionSignature = (method) => {
+  const methodName = method.kind === "constructor" ? "constructor" : method.key.name;
+  const params = parseFunctionParams(method.params);
+  return [methodName, params];
+}
+
+const parseFunctionParams = (params) => {
+  return params.map(param => {
+    switch(param.type) {
+      case 'Identifier':
+        return param.name;
+      case 'AssignmentPattern':
+        if (param.left.type === 'Identifier') {
+          return param.left.name;
+        }
+        if (param.left.type === 'ObjectPattern') {
+          return param.left.properties.map(prop => prop.key.name);
+        }
+        return [];
+      default:
+        return [];
+    }
+  });
+};
+
 export const parseControlFlows = (node) => {
   switch (node.type) {
     case "IfStatement":
@@ -398,6 +423,35 @@ export const parseEditData = (node, getCode) => {
         value: node.source.value,
         path: 'source.value',
       }]);
+    },
+    'ClassDeclaration': (node) => {
+      return [{
+        name: 'class',
+        value: node.id.name,
+        path: 'id.name',
+      }];
+    },
+    'ClassMethod': (node) => {
+      const paramsData = parseFunctionParams(node.params).map(param => {
+        return {
+          name: 'parameter',
+          value: Array.isArray(param) ? param.join(', ') : param,
+          path: 'params',
+        }
+      });
+      if (node.kind === 'constructor') {
+        return [{
+          name: 'method name',
+          value: 'constructor',
+          path: 'kind',
+        }].concat(paramsData);
+      } else {
+        return [{
+          name: 'method name',
+          value: node.key.name,
+          path: 'key.name',
+        }].concat(paramsData);
+      }
     },
     'ExpressionStatement': {
       'expression': {

@@ -12,6 +12,7 @@ import {
   parseEditData,
   parseTitle,
   parseContent,
+  parseFunctionSignature,
   setNode,
 } from "./blockParser";
 
@@ -83,12 +84,12 @@ export class Block {
     if (!(this.node.type === "ClassDeclaration" || this.node.declaration?.type === "ClassDeclaration")) return;
 
     this.classMethodBlocks = this.node.declaration.body.body.map(method => {
-      const methodName = method.kind === "constructor" ? "constructor" : method.key.name;
       return new FunctionBlock({
         node: method,
         keysInScope: this.keysInScope,
         getCode: this.getCode,
-        signature: [methodName, method.params.map(p => p.name)],
+        signature: parseFunctionSignature(method),
+        // signature: [methodName, method.params.map(p => p.name)],
         groupId: this.groupId,
       });
     });
