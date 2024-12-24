@@ -12,7 +12,7 @@ npx run start
 
 ## Sample
 [demo](https://zyl11.csb.app/) for the following sample code
-```
+```js
 const MAX_ITERATION = 80
 function mandelbrot(c) {
     let z = { x: 0, y: 0 }, n = 0, p, d;
