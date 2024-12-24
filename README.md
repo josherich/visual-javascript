@@ -1,4 +1,7 @@
 # visual-javascript
+An experimental visual editor for JavaScript
+
+<img width="1512" alt="Screenshot 2024-12-24 at 5 42 45 PM" src="https://github.com/user-attachments/assets/24986ee7-3471-4d31-8fcf-8fd1c1d45a7b" />
 
 ## Development
 
