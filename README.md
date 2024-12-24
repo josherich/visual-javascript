@@ -13,15 +13,23 @@ npx run start
 ## Sample
 [demo](https://zyl11.csb.app/) for the following sample code
 ```
-var a = 42;
-var b = 5;
-function addA(d) {
-  return a + d;
+const MAX_ITERATION = 80
+function mandelbrot(c) {
+    let z = { x: 0, y: 0 }, n = 0, p, d;
+    do {
+        p = {
+            x: Math.pow(z.x, 2) - Math.pow(z.y, 2),
+            y: 2 * z.x * z.y
+        }
+        z = {
+            x: p.x + c.x,
+            y: p.y + c.y
+        }
+        d = Math.sqrt(Math.pow(z.x, 2) + Math.pow(z.y, 2))
+        n += 1
+    } while (d <= 2 && n < MAX_ITERATION)
+    return [n, d <= 2]
 }
-c = addA(2) + b;
-if (c + b > 0) {
-  a = 0;
-} else {
-  a = 1;
-}
+mandelbrot(1);
+c = 1;
 ```
