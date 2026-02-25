@@ -157,7 +157,7 @@ export class Block {
         );
       } else if (block instanceof Block) {
         if (
-          ["WhileStatement", "DoWhileStatement", "ForStatement"].includes(
+          ["WhileStatement", "DoWhileStatement", "ForStatement", "ForInStatement", "ForOfStatement"].includes(
             block.name
           )
         )
@@ -210,7 +210,7 @@ export class Block {
   ** 3. Boolean getter
   */
   isControlFlowBlock() {
-    return ["BreakStatement", "ContinueStatement"].includes(this.name);
+    return ["BreakStatement", "ContinueStatement", "ThrowStatement"].includes(this.name);
   }
 
   /*
