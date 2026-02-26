@@ -3,28 +3,29 @@
 // FunctionDeclaration
 // IfStatement
 // AssignmentExpression
-
-// ========== todo ===========
-// WhileStatement, doWhileStatement
-// ForStatement, for in, for of
-// break
-// return
-// continue
-// try catch finally throw
+// WhileStatement, DoWhileStatement
+// ForStatement, ForInStatement, ForOfStatement
+// BreakStatement, ContinueStatement
+// ReturnStatement
+// TryStatement, ThrowStatement
 // SwitchStatement
-// ConditionalOperator
+
 import _flatten from "lodash/flatten";
 
 const identifierMap = {
   BinaryExpression: ["left", "right"],
+  LogicalExpression: ["left", "right"],
   AssignmentExpression: ["left", "right"],
   CallExpression: ["callee", "arguments"],
   BlockStatement: ["body"],
   ReturnStatement: ["argument"],
   ObjectExpression: ["properties"],
   Property: ["value"],
-  CallExpression: ["callee", "arguments"],
   MemberExpression: ["object"],
+  UpdateExpression: ["argument"],
+  ConditionalExpression: ["test", "consequent", "alternate"],
+  UnaryExpression: ["argument"],
+  SequenceExpression: ["expressions"],
 };
 
 const identifierNameMap = {
@@ -34,8 +35,14 @@ const identifierNameMap = {
   IfStatement: "if",
   WhileStatement: "while",
   DoWhileStatement: "do-while",
+  ForStatement: "for",
+  ForInStatement: "for...in",
+  ForOfStatement: "for...of",
   BreakStatement: "break",
   ContinueStatement: "continue",
+  TryStatement: "try",
+  ThrowStatement: "throw",
+  SwitchStatement: "switch",
   ImportDeclaration: "Import",
   ExportNamedDeclaration: "Export",
   ClassDeclaration: "Class",
@@ -106,6 +113,21 @@ export const parseSubtitle = (node, getCode) => {
     },
     'DoWhileStatement': (node) => {
       return getCode(node.test);
+    },
+    'ForStatement': (node) => {
+      return node.test ? getCode(node.test) : '';
+    },
+    'ForInStatement': (node) => {
+      return getCode(node.left) + ' in ' + getCode(node.right);
+    },
+    'ForOfStatement': (node) => {
+      return getCode(node.left) + ' of ' + getCode(node.right);
+    },
+    'SwitchStatement': (node) => {
+      return getCode(node.discriminant);
+    },
+    'ThrowStatement': (node) => {
+      return getCode(node.argument);
     },
     'ReturnStatement': (node) => {
       return getCode(node.argument);
@@ -199,6 +221,30 @@ export const parseInputs = (node) => {
     case "WhileStatement":
       res = parseStatementInputs(node.test);
       break;
+    case "ForStatement": {
+      const initVars = node.init && node.init.type === "VariableDeclaration"
+        ? parseVarDeclarations(node.init.declarations)
+        : [];
+      const testInputs = node.test ? parseStatementInputs(node.test) : [];
+      const updateInputs = node.update ? parseIdentifiers(node.update) : [];
+      res = [...testInputs, ...updateInputs].filter(id => !initVars.includes(id));
+      break;
+    }
+    case "ForInStatement":
+      res = parseStatementInputs(node.right);
+      break;
+    case "ForOfStatement":
+      res = parseStatementInputs(node.right);
+      break;
+    case "TryStatement":
+      res = [];
+      break;
+    case "ThrowStatement":
+      res = node.argument ? parseIdentifiers(node.argument) : [];
+      break;
+    case "SwitchStatement":
+      res = parseStatementInputs(node.discriminant);
+      break;
     case "FunctionDeclaration":
       const params = parseIdentifiers(node.params);
       res = parseIdentifiers(node.body).filter((id) => !params.includes(id));
@@ -217,6 +263,16 @@ export const parseOutputs = (node, keysInScope) => {
       return parseVarDeclarations(node.declarations);
     case "FunctionDeclaration":
       return [node.id.name];
+    case "ForInStatement":
+      if (node.left.type === "VariableDeclaration") {
+        return parseVarDeclarations(node.left.declarations);
+      }
+      return [];
+    case "ForOfStatement":
+      if (node.left.type === "VariableDeclaration") {
+        return parseVarDeclarations(node.left.declarations);
+      }
+      return [];
     case "ExpressionStatement":
       return parseOutputs(node.expression, keysInScope);
     case "AssignmentExpression":
@@ -287,6 +343,42 @@ export const parseControlFlows = (node) => {
       return {
         Body: parseBlockStatement(node.body),
       };
+    case "ForStatement":
+      return {
+        Body: parseBlockStatement(node.body),
+      };
+    case "ForInStatement":
+      return {
+        Body: parseBlockStatement(node.body),
+      };
+    case "ForOfStatement":
+      return {
+        Body: parseBlockStatement(node.body),
+      };
+    case "TryStatement": {
+      const flows = {
+        Try: node.block.body,
+      };
+      if (node.handler) {
+        flows.Catch = node.handler.body.body;
+      }
+      if (node.finalizer) {
+        flows.Finally = node.finalizer.body;
+      }
+      return flows;
+    }
+    case "ThrowStatement":
+      return {
+        Exit: [],
+      };
+    case "SwitchStatement": {
+      const cases = {};
+      node.cases.forEach((switchCase, index) => {
+        const key = switchCase.test === null ? "Default" : `Case_${index + 1}`;
+        cases[key] = switchCase.consequent;
+      });
+      return cases;
+    }
     case "BreakStatement":
       return {
         Exit: [],
@@ -326,6 +418,18 @@ export const parseSourceCode = (node, getCode) => {
       return [node.test, node.body].filter(e => e).map(getCode);
     case "DoWhileStatement":
       return [node.body, node.test].filter(e => e).map(getCode);
+    case "ForStatement":
+      return [node.init, node.test, node.update, node.body].filter(e => e).map(getCode);
+    case "ForInStatement":
+      return [node.left, node.right, node.body].filter(e => e).map(getCode);
+    case "ForOfStatement":
+      return [node.left, node.right, node.body].filter(e => e).map(getCode);
+    case "TryStatement":
+      return [node.block, node.handler, node.finalizer].filter(e => e).map(getCode);
+    case "ThrowStatement":
+      return [node.argument].filter(e => e).map(getCode);
+    case "SwitchStatement":
+      return [node.discriminant, ...node.cases].filter(e => e).map(getCode);
     case 'ReturnStatement':
       return [node.argument].filter(e => e).map(getCode);
     case "ExpressionStatement":
