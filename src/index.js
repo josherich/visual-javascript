@@ -11,9 +11,10 @@ const App = () => {
     height: undefined
   });
   const [edits, setEdits] = React.useState([]);
+  const isMobile = window.innerWidth <= 768;
   const [layout, setLayout] = React.useState({
-    slider: true,
-    editor: true,
+    slider: !isMobile,
+    editor: !isMobile,
   });
   const [source, setSource] = React.useState(manager.getSource());
 
@@ -108,7 +109,7 @@ const App = () => {
           { className: "ui form" },
           React.createElement(
             "textarea",
-            { className: "", ref: sourceText, defaultValue: source, cols: "80", rows: "10" },
+            { className: "", ref: sourceText, defaultValue: source, rows: isMobile ? "5" : "10" },
           )
         ),
 
